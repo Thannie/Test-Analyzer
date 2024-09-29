@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-4">Test Results Dashboard</h1>
+        
+        <div class="bg-white rounded-lg shadow p-4 mb-4">
+            <h2 class="text-xl font-semibold mb-2">Class Average</h2>
+            <p class="text-4xl font-bold text-blue-600">{{ "%.2f"|format(class_average) }}%</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="bg-white rounded-lg shadow p-4">
+                <h2 class="text-xl font-semibold mb-2">Student Scores</h2>
+                <div id="scoreChart"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <h2 class="text-xl font-semibold mb-2">Question Difficulty</h2>
+                <div id="difficultyChart"></div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-4 mb-4">
+            <h2 class="text-xl font-semibold mb-2">Student Data</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2">Student Name</th>
+                            <th class="px-4 py-2">Total Score</th>
+                            <th class="px-4 py-2">Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in student_data %}
+                        <tr>
+                            <td class="border px-4 py-2">{{ student.student_name }}</td>
+                            <td class="border px-4 py-2">{{ "%.2f"|format(student.total_score) }}</td>
+                            <td class="border px-4 py-2">{{ "%.2f"|format(student.percentage) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-4">
+            <h2 class="text-xl font-semibold mb-2">Question Analysis</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-2">Question</th>
+                            <th class="px-4 py-2">Max Points</th>
+                            <th class="px-4 py-2">Mean</th>
+                            <th class="px-4 py-2">Difficulty</th>
+                            <th class="px-4 py-2">Avg Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for question in question_data %}
+                        <tr>
+                            <td class="border px-4 py-2">{{ question.index }}</td>
+                            <td class="border px-4 py-2">{{ "%.2f"|format(question.max_points) }}</td>
+                            <td class="border px-4 py-2">{{ "%.2f"|format(question.mean) }}</td>
+                            <td class="border px-4 py-2">{{ "%.2f"|format(question.difficulty) }}</td>
+                            <td class="border px-4 py-2">{{ "%.2f"|format(question.avg_percentage) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var scoreData = {{ graph_scores | safe }};
+        var difficultyData = {{ graph_difficulty | safe }};
+        
+        Plotly.newPlot('scoreChart', JSON.parse(scoreData));
+        Plotly.newPlot('difficultyChart', JSON.parse(difficultyData));
+    </script>
+</body>
+</html>
