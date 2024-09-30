@@ -2,11 +2,25 @@
 from numbers import Number
 import math
 
+
+class Question:
+    total_points: Number
+    
+    def __init__(self, total_points:Number) -> None:
+        self.total_points
+
+# question is a reference
+# so a user can easily change the points of one question on alle results
 class QuestionResult:
-    def __init__(self, id=-1, total_points:Number=1, points:Number=1) -> None:
+    
+    def __init__(self, id=-1, question:Question=Question(1), points:Number=1) -> None:
         self.id = id
-        self.total_points = total_points
+        self.question = question
         self.points =   points
+        
+    @getattr
+    def total_points(self) -> Number:
+        return self.question.total_points
     
     def percentage(self) -> float:
         return self.points / self.total_points
