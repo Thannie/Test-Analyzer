@@ -13,6 +13,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__, template_folder=os.path.join(basedir, 'templates'), static_folder="../../static")
 app.secret_key = 'joost'
+app.jinja_env.add_extension('pypugjs.ext.jinja.PyPugJSExtension')
 
 # configure upload folder
 UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
