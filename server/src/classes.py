@@ -1,11 +1,9 @@
 from numbers import Number
 import math
 import uuid
+from typing import Callable
 
 # fix not referenced
-
-class StatisticCalculator:
-    pass
 
 class Question:
     pass
@@ -33,9 +31,32 @@ class GradeFormula:
 class Test:
     pass
 
+def standard_deviation(data) -> float:
+    average = sum(data) / len(data)
+    return math.sqrt((sum([math.pow(val - average, 2) for val in data ])) / (len(data) - 1))
+
+# list1[index] and list2[index] are related datapoints
+def correlation(list1:list[float], list2:list[float]) -> float:
+    n = len(list1)
+    if len(list1) != len(list2) or n <= 1: return None
+    
+    list1_mean = sum(list1) / len(list1)
+    list2_mean = sum(list2) / len(list2)
+    
+    # https://en.wikipedia.org/wiki/Covariance
+    cov = sum([(list1[i] - list1_mean)*(list2[i] - list2_mean) for i in range(n)]) / (n - 1)
+
+    list1_stdev = standard_deviation(list1)
+    list2_stdev = standard_deviation(list2)
+    
+    cor = cov / (list1_stdev * list2_stdev)
+    
+    return cor
+
+
 # used to have control over how a score is calculated
 class GradeFormula:
-    def __init__(self, id=uuid.uuid4(), name:str="Method name", method:function=(lambda points, total: 9*points/total+1)) -> None:
+    def __init__(self, id=uuid.uuid4(), name:str="Method name", method:Callable=(lambda points, total: 9*points/total+1)) -> None:
         self.id = id
         self.name = name
         self.method = method
@@ -83,6 +104,9 @@ class ResultBundle:
         self.test = test
         self.results = results
         
+    def __iter__(self):
+        return self.results
+    
     @property
     def grade(self):
         return self.test.grade_formula.method(self.points, self.total_points)
@@ -123,26 +147,71 @@ class ResultBundle:
         return sum([result.percentage() for result in self.results]) / len(self.results)
     
     def standard_deviation(self) -> float:
-        average = self.average_precentage()
-        return math.sqrt((sum([math.pow(result.percentage() - average, 2) for result in self.results ])) / (len(self.results) - 1))
+        return standard_deviation([result.get_percentage() for result in self.results])
 
-    def __iter__(self):
-        return self.results
-
-# used for statistic calculations
-class StatisticCalculator:
-    def __init__(self) -> None:
-        pass
     
-    def get_covariation():
-        pass
-    
-    def get_correlation():
-        pass
 
-    def get_correlations() -> list[dict[str, str|float]]:
-        pass
+
+    # should be called on a full test
+    # to see wich student have around the same answers
+    # wich questions are of the same level
+    # same for secitons
+    def get_type_correlation(self, id_type:str, id1, id2) -> float:
+
+        results1 = []
+        results2 = []            
         
+        # if you want to compare two questions (b and c) you need to make an array like this
+        # [(student_a_question_b, student_a_question_c), (student_b_question_b, student_c_question_c), ...]
+        
+        # if you want to compare two students (a and b) you need to make an array like this
+        # [(student_a_question_a, student_b_question_a), (student_a_question_b, student_b_question_b), ...]
+
+        # don't what to edit the actial list
+        if (id_type == "student"):
+            results1 = self.get_student_results(id1) 
+            results2 = self.get_student_results(id2)
+            # compare questions of two students
+            func = lambda target, current: current.question.id == target.question.id
+            
+        elif (id_type == "question"):
+            results1 = self.get_question_results(id1) 
+            results2 = self.get_question_results(id2)
+            func = lambda target, current: current.student.id == target.student.id
+
+        # DONT USE I DONT UNDERSTAND
+        elif (id_type == "section"):
+            results1 = self.get_question_results(id1) 
+            results2 = self.get_question_results(id2)
+            func = lambda target, current: current.question.id == target.question.id
+        else: return None
+
+        related_list = []
+        
+        for result in results1:
+            
+            answers = [x for x in results2 if func(result, x)]
+            
+            if (len(answers) == 0 ): continue
+            
+            related_list.append((result, answers[0]))
+        
+
+        list1 = []
+        list2 = []
+        for relation in related_list:
+            list1.push(relation[0])
+            list2.push(relation[1])
+        
+        value1 = [x.get_percentage() for x in list1]
+        value2 = [x.get_percentage() for x in list2]
+        
+        cor = correlation(value1, value2)
+
+        return cor
+
+    def get_type_correlations(self, id_type:str, id1, id2) -> list[dict[str, str|float]]:
+        pass
 
 
 # competency, or questions over paragraph have this
@@ -191,3 +260,8 @@ class Test:
         self.original_grade_formula = grade_formula
         # changed by user
         self.grade_formula = grade_formula
+
+print(correlation(
+    [1,2,3,4,5],
+    [1,2,3,2,4]
+))
