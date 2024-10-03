@@ -4,7 +4,7 @@ import uuid
 
 # fix not referenced
 
-class Calculator:
+class StatisticCalculator:
     pass
 
 class Question:
@@ -129,8 +129,8 @@ class ResultBundle:
     def __iter__(self):
         return self.results
 
-# used for calculations with two or more bundles
-class Calculator:
+# used for statistic calculations
+class StatisticCalculator:
     def __init__(self) -> None:
         pass
     
