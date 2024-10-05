@@ -1,0 +1,30 @@
+{
+  "name": "analyse",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mdi/font": "7.4.47",
+    "apexcharts": "^3.54.0",
+    "lodash": "^4.17.21",
+    "pinia": "^2.2.4",
+    "roboto-fontface": "*",
+    "uuid": "^10.0.0",
+    "vue": "^3.4.31",
+    "vue-pug-plugin": "^2.0.3",
+    "vue3-apexcharts": "^1.6.0",
+    "vuetify": "^3.6.11",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.5",
+    "sass": "1.77.6",
+    "unplugin-fonts": "^1.1.1",
+    "unplugin-vue-components": "^0.27.2",
+    "vite": "^5.3.3",
+    "vite-plugin-vuetify": "^2.0.3"
+  }
+}
