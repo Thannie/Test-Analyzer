@@ -3,20 +3,47 @@ v-app
     v-main
         v-tabs(v-model='selected_tab')
             v-tab(value="load") Laad
-            v-tab(value="analyse") Analyseer
-            v-tab(value="edit") Bewerk
+            v-tab(value="analyse" v-if="is_loaded") Analyseer
+            v-tab(value="edit" v-if="is_loaded") Bewerk
         v-window(v-model='selected_tab')
             v-window-item(value="load") 
-                v-file-input(
-                    v-model="excel_file"
-                    label="excel"
-                    show-size
-                )
-                v-btn(
-                    @click="loadClassData()"
-                ) Laad in 
-                p {{ excel_file }}
+                v-row(style="max-height: calc(100dvh - 60px)")
+                    v-col
+
+                        v-file-input(
+                            v-model="excel_file"
+                            label="excel"
+                            show-size
+                        )
+                        v-btn(
+                            @click="loadClassData()"
+                        ) Laad in 
+                        p {{ excel_file }}
+                    v-divider(vertical)
+                    v-col
+                        div(v-if="is_loaded")
+                            h1 {{ test.name }}
+                            v-divider
+                            p vragen: {{test.questions.length}}
+                            p studenten: {{test.students.length}}
+                    v-divider(vertical)
+                    v-col
+                        div(v-if="is_loaded")
+
             v-window-item(value="analyse")
+                //- :headers="resultHeaders"
+                v-select(v-model="result_data_type" :items="['points', 'percent']")
+                v-data-table(
+                    :items="resultItems"
+                    density="compact"
+                )
+                    template(v-slot:item="{ item }")
+                        tr  
+                            td(v-for="val in Object.values(item)") 
+                                | {{ (result_data_type == "percent" && !(typeof val == 'string')) ? Math.round(val * 100) : val }}
+
+                //- p {{ resultItems}}
+
                 v-select(v-model="comparision_type" :items="['question', 'student']")
                 apexchart(
                     width="800px"
@@ -24,6 +51,16 @@ v-app
                     :options="heatmap_options"
                     :series="heatmapData"
                 )
+
+                apexchart(
+                    width="800px"
+                    height="600px"
+                    :options="gradechart_options"
+                    :series="gradechartData"
+                )
+                
+
+
             v-window-item(value="edit")
 
 </template>
@@ -31,7 +68,7 @@ v-app
 <script>
 // Data 
 import data_classes from '@/classes'
-import {  excelFileToJSON } from '@/helpers'
+import {  excelFileToJSON, sum } from '@/helpers'
 
 
 // Components
@@ -58,20 +95,58 @@ export default {
 
            test: new data_classes.Test({}),
 
+            // table
+            result_data_type: 'points',
+
+            // heat map
             comparision_type: 'question',
             heatmap_options: {
                 chart: {
                     type: 'heatmap',
                 },
                 dataLabels: {
-                    enabled: true
+                    enabled: true,
+                    formatter: function (val, opt) {
+                        return Math.round(val * 1000) / 1000
+                    },
+                    dropShadow: {
+                        // enabled: true
+                    }
                 },
                 colors: ["#008FFB"],
                 heatmap: {
 
-                    min: -1,
+                    min: 0,
                     max: 1
+                },
+                tooltip: {
+                    theme: 'dark',
+                    x: {
+                        show: true,
+                        formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
+                            return 'Cor(item1, item2) = '
+                        }
+                    },
+                    y: {
+                        title: {
+                            formatter: function () {
+                                return ''
+                            }
+                        }
+                    }
                 }
+            },
+            gradechart_options: {
+                chart: {
+                    type: 'line',
+                },
+                stroke: {
+                    curve: 'straight',
+                },
+                tooltip: {
+                    theme: 'dark'
+                }
+
             }
 
        }
@@ -114,7 +189,29 @@ export default {
             
             return series
             
-        }
+        },
+        gradechartData(){
+            const grade_series = [...Array(20).keys()].map(e => e * 0.5);
+
+            return [{
+                type: 'line',
+                data: grade_series.map(e => {return  {
+                    x: Math.round(e / 10) * 10,
+                    y: this.test.grade_formula.method(e / 10)
+                }})
+            }]
+
+        },
+        // resultHeaders(){
+        //     return {
+
+        //     }
+        // },
+        resultItems(){
+            // student as row
+            return this.test.getJsonRows(this.result_data_type)
+            
+        },
    },
    methods: {
         async loadClassData(){
@@ -134,15 +231,23 @@ export default {
                 }
             })
 
+            const students = []
             const STUDENT_ID_KEY = '__EMPTY'
 
             const result_bundle = new data_classes.ResultBundle({})
             data.Sheet1.forEach(row => {
+                const student_id = row[STUDENT_ID_KEY]
+                if (student_id =="Max Points"){return}
+                const current_student = new data_classes.Student({
+                    id: student_id
+                })
+                students.push(current_student)
+
                 Object.entries(row).forEach(([question_id, points]) => {
                     if (question_id.startsWith('Q')){
                         const result = new data_classes.Result({
                             question: questions.find(e => e.question_number == Number(question_id.replaceAll('Q', ''))) || new data_classes.Question({}),
-                            student: new data_classes.Student({id: row[STUDENT_ID_KEY]}),
+                            student: current_student,
                             points: points
                         })
 
@@ -155,7 +260,8 @@ export default {
             this.test = new data_classes.Test({
                 results: result_bundle,
                 name: "ingeladen toets",
-                questions: questions
+                questions: questions,
+                students: students
             })
             this.is_loaded = true
             console.log(this.test)

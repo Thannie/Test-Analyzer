@@ -30,8 +30,9 @@ function excelFileToJSON(file) {
     });
 }
 
-
+function sum(l){return l.reduce((data, current) => data+current,0)}
 
 export {
-    excelFileToJSON
+    excelFileToJSON,
+    sum
 }

@@ -1,12 +1,12 @@
 // Importing required libraries (not needed in the same way as Python)
 import { v4 as uuidv4 } from 'uuid' 
-
+import { sum } from '@/helpers'
 
 const data_classes = {}
 
 // Standard Deviation function
 function standardDeviation(data) {
-    const average = data.reduce((sum, val) => sum + val, 0) / data.length;
+    const average = sum(data) / data.length;
     return Math.sqrt(data.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / (data.length - 1));
 }
 data_classes.standardDeviation = standardDeviation
@@ -30,7 +30,7 @@ data_classes.correlation = correlation
 
 // GradeFormula class
 class GradeFormula {
-    constructor(id = uuidv4(), name = "Method name", method = (points, total) => (9 * points / total + 1)) {
+    constructor(id = uuidv4(), name = "Method name", method = (percentage) => (9 * percentage + 1)) {
         this.id = id;
         this.name = name;
         this.method = method;
@@ -82,7 +82,7 @@ class Result {
         this._points = value; // Ensure points are set
     }
 
-    percentage() {
+    get percentage() {
         return this.points / this.total_points;
     }
 }
@@ -116,6 +116,14 @@ class ResultBundle {
         return this.results.reduce((sum, result) => sum + result.total_points, 0);
     }
 
+    get average_points(){
+        return this.points / this.results.length
+    }
+
+    get average_percentage(){
+        return this.results.reduce((sum, result) => sum + result.percentage, 0) / this.results.length;
+    }
+
     addResult(result){
         this.results.push(result)
     }
@@ -145,13 +153,8 @@ class ResultBundle {
         this.results.push(questionResult);
     }
 
-    averagePercentage() {
-        if (!this.results.length) return 0.0;
-        return this.results.reduce((sum, result) => sum + result.percentage(), 0) / this.results.length;
-    }
-
     standardDeviation() {
-        return standardDeviation(this.results.map(result => result.percentage()));
+        return standardDeviation(this.results.map(result => result.percentage));
     }
 
     getTypeCorrelation(id_type, id1, id2) {
@@ -182,8 +185,8 @@ class ResultBundle {
         const list1 = relatedList.map(relation => relation[0]);
         const list2 = relatedList.map(relation => relation[1]);
 
-        const value1 = list1.map(x => x.percentage());
-        const value2 = list2.map(x => x.percentage());
+        const value1 = list1.map(x => x.percentage);
+        const value2 = list2.map(x => x.percentage);
 
         return correlation(value1, value2);
     }
@@ -212,7 +215,9 @@ class Test {
         name = "", 
         results = new ResultBundle({}), 
         grade_formula = new GradeFormula({}), 
-        questions=[]
+        questions=[],
+        students=[],
+        sections=[]
     }) {
         this.id = id;
         this.name = name;
@@ -220,6 +225,68 @@ class Test {
         this.original_grade_formula = grade_formula;
         this.grade_formula = grade_formula; // changed by user
         this.questions = questions
+        this.students = students
+        this.sections = sections
+    }
+    getJsonRows(data_type="point"){
+        
+        const getData = (result) => {
+            switch (data_type) {
+                case "points":
+                    return result.points
+                    break;
+                case "percent":
+                    return result.percentage
+
+                    break;          
+                default:
+                    return 0
+                    break;
+            }
+        }
+        const getTotal = (result) => {
+            switch (data_type) {
+                case "points":
+                    return result.total_points
+                    break;
+                case "percent":
+                    return 1
+
+                    break;          
+                default:
+                    break;
+            }
+        }
+        
+        const rows = [{
+                id: 'Max', 
+                ...this.questions.reduce((data,e) => {data['Q'+e.question_number] = getTotal(e); return data}, {}), 
+                total: sum(this.questions.map(e => getTotal(e))),
+                average: 1
+            }, 
+            ...this.students.map(student => {
+                const result_bundle = this.results.getStudentResults(student.id)
+                const results = result_bundle.results
+                // console.log(results)
+                const data = {
+                    id: student.id,
+                    ...results.reduce((row, result) => { 
+                        row['Q'+result.question.question_number] = getData(result)
+
+                        return row
+                    }, {}),
+                    total: result_bundle.points,
+                    average: {
+                        points: result_bundle.average_points,
+                        percent: result_bundle.average_percentage
+                    }[data_type]
+                }
+                return data
+
+            })
+        ]
+        return rows
+
     }
 }
 data_classes.Test = Test
