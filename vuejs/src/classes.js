@@ -28,9 +28,22 @@ function correlation(list1, list2) {
 }
 data_classes.correlation = correlation
 
+class BaseClass {
+    constructor(){}
+    // set without changing reference
+    set(val){
+        Object.keys(this).forEach(key => {
+            if (Object.keys(val).includes(key)){
+                this[key] = val[key]
+            }
+        })
+    }
+}
+
 // GradeFormula class
-class GradeFormula {
+class GradeFormula extends BaseClass {
     constructor(id = uuidv4(), name = "Method name", method = (percentage) => (9 * percentage + 1)) {
+        super()
         this.id = id;
         this.name = name;
         this.method = method;
@@ -39,8 +52,9 @@ class GradeFormula {
 data_classes.GradeFormula = GradeFormula
 
 // Question class
-class Question {
+class Question extends BaseClass {
     constructor({total_points, question_number, id = uuidv4(), sections = []}) {
+        super()
         this.id = id;
         this.question_number = question_number;
         this.original_points = total_points;
@@ -50,16 +64,18 @@ class Question {
 }
 data_classes.Question = Question
 
-class Student {
+class Student extends BaseClass {
     constructor({id = uuidv4()}){
+        super()
         this.id = id
     }
 }
 data_classes.Student = Student
 
 // Result class
-class Result {
+class Result extends BaseClass {
     constructor({question = new Question(), student = {}, points = 1, id = uuidv4()}) {
+        super()
         this.id = id;
         this.question = question;
         this.student = student;
@@ -89,12 +105,13 @@ class Result {
 data_classes.Result = Result
 
 // ResultBundle class
-class ResultBundle {
+class ResultBundle extends BaseClass {
     constructor({
         results = [], 
         id = uuidv4(), 
         test = {}
     }) {
+        super()
         this.id = id;
         this.test = test;
         this.results = results;
@@ -199,8 +216,9 @@ data_classes.ResultBundle = ResultBundle
 
 
 // Section class
-class Section {
+class Section extends BaseClass {
     constructor({id = uuidv4(), name = "", description = ""}) {
+        super()
         this.id = id;
         this.name = name;
         this.description = description;
@@ -209,7 +227,7 @@ class Section {
 data_classes.Section = Section
 
 // Test class
-class Test {
+class Test extends BaseClass {
     constructor({
         id = uuidv4(), 
         name = "", 
@@ -219,6 +237,7 @@ class Test {
         students=[],
         sections=[]
     }) {
+        super()
         this.id = id;
         this.name = name;
         this.results = results;

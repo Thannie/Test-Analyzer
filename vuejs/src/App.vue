@@ -8,7 +8,7 @@ v-app
         v-window(v-model='selected_tab')
             v-window-item(value="load") 
                 v-row(style="max-height: calc(100dvh - 60px)")
-                    v-col
+                    v-col.v-col-12.v-col-sm-4
 
                         v-file-input(
                             v-model="excel_file"
@@ -20,16 +20,72 @@ v-app
                         ) Laad in 
                         p {{ excel_file }}
                     v-divider(vertical)
-                    v-col
+                    v-col.v-col-12.v-col-sm-4
                         div(v-if="is_loaded")
                             h1 {{ test.name }}
                             v-divider
                             p vragen: {{test.questions.length}}
                             p studenten: {{test.students.length}}
-                    v-divider(vertical)
-                    v-col
-                        div(v-if="is_loaded")
+                            v-divider
+                            v-list(v-model="selected_question_number" density="compact")
+                                v-list-item(
+                                    v-for="(question, i) in test.questions"
+                                    :key="question.question_number"
+                                    @click="selected_question_number = question.question_number"
+                                )   
+                                    template(v-slot:prepend)
+                                        v-list-item-action(start)
+                                            v-checkbox(readonly density="compact" :modelValue="question.question_number == selected_question_number")
 
+                                    v-list-item-title Vraag {{ question.question_number }} 
+                                        
+                                    ul.pl-5()
+                                        li(v-for="section in question.sections") {{ section.name }}
+
+                                    
+                    v-divider(vertical)
+                    v-col.v-col-12.v-col-sm-4
+                        div(v-if="is_loaded && selected_question ")
+                            h2 Vraag {{ selected_question.question_number }}
+                            v-divider
+                            h4 Leerdoelen:
+                            v-list(density="compact")
+                                v-list-item(v-for="(section,i) in sections")
+                                    template(v-slot:prepend)
+                                        v-list-item-action(start)
+                                            v-checkbox(
+                                                readonly 
+                                                density="compact" 
+                                                :modelValue="selected_question.sections.map(e => e.id).includes(section.id)"
+                                                @click="clickSectionCheckbox(section)"
+                                            )
+
+                                    v-list-item-title 
+                                        v-text-field(
+                                            class="mt-2"
+                                            v-model="sections[i].name" 
+                                            label="Naam leerdoel"
+                                            density="compact"
+                                            variant="outlined"
+                                        )
+                                        
+                                    template(v-slot:append)
+                                        v-icon(icon="mdi-delete" @click="deleteSection(section)" color="red")
+                                    
+                                    v-list-item-subtitle 
+                                        v-text-field(
+                                            class="mt-2"
+                                            v-model="sections[i].beschrijving" 
+                                            label="Beschrijving leerdoel"
+                                            density="compact"
+                                            variant="outlined"
+                                        )
+                                        
+                                    
+                            v-btn(
+                                prepend-icon="mdi-plus"
+                                @click="sections.push(new data_classes.Section({}))"
+                            ) Nieuw leerdoel
             v-window-item(value="analyse")
                 //- :headers="resultHeaders"
                 v-select(v-model="result_data_type" :items="['points', 'percent']")
@@ -84,14 +140,315 @@ export default {
    },
    emits: [],
    setup() {
-       
+       return { data_classes }
    },
    data(){
         return {
            selected_tab: 'load',
 
            excel_file: null,
+           test_data: {
+                "Sheet1": [
+                    {
+                        "__EMPTY": "Student_1",
+                        "Q1": 6,
+                        "Q2": 1,
+                        "Q3": 1,
+                        "Q4": 5,
+                        "Q5": 1,
+                        "Q6": 4,
+                        "Q7": 6,
+                        "Q8": 3,
+                        "Q9": 3,
+                        "Q10": 4,
+                        "Total": 34
+                    },
+                    {
+                        "__EMPTY": "Student_2",
+                        "Q1": 6,
+                        "Q2": 0,
+                        "Q3": 1,
+                        "Q4": 11,
+                        "Q5": 15,
+                        "Q6": 3,
+                        "Q7": 3,
+                        "Q8": 5,
+                        "Q9": 3,
+                        "Q10": 9,
+                        "Total": 56
+                    },
+                    {
+                        "__EMPTY": "Student_3",
+                        "Q1": 8,
+                        "Q2": 1,
+                        "Q3": 0,
+                        "Q4": 8,
+                        "Q5": 7,
+                        "Q6": 2,
+                        "Q7": 2,
+                        "Q8": 7,
+                        "Q9": 1,
+                        "Q10": 10,
+                        "Total": 46
+                    },
+                    {
+                        "__EMPTY": "Student_4",
+                        "Q1": 11,
+                        "Q2": 4,
+                        "Q3": 4,
+                        "Q4": 12,
+                        "Q5": 5,
+                        "Q6": 0,
+                        "Q7": 6,
+                        "Q8": 5,
+                        "Q9": 1,
+                        "Q10": 4,
+                        "Total": 52
+                    },
+                    {
+                        "__EMPTY": "Student_5",
+                        "Q1": 5,
+                        "Q2": 2,
+                        "Q3": 5,
+                        "Q4": 12,
+                        "Q5": 11,
+                        "Q6": 4,
+                        "Q7": 2,
+                        "Q8": 5,
+                        "Q9": 1,
+                        "Q10": 10,
+                        "Total": 57
+                    },
+                    {
+                        "__EMPTY": "Student_6",
+                        "Q1": 7,
+                        "Q2": 1,
+                        "Q3": 7,
+                        "Q4": 6,
+                        "Q5": 11,
+                        "Q6": 3,
+                        "Q7": 0,
+                        "Q8": 6,
+                        "Q9": 6,
+                        "Q10": 9,
+                        "Total": 56
+                    },
+                    {
+                        "__EMPTY": "Student_7",
+                        "Q1": 10,
+                        "Q2": 2,
+                        "Q3": 14,
+                        "Q4": 6,
+                        "Q5": 7,
+                        "Q6": 2,
+                        "Q7": 0,
+                        "Q8": 8,
+                        "Q9": 6,
+                        "Q10": 7,
+                        "Total": 62
+                    },
+                    {
+                        "__EMPTY": "Student_8",
+                        "Q1": 6,
+                        "Q2": 0,
+                        "Q3": 0,
+                        "Q4": 12,
+                        "Q5": 8,
+                        "Q6": 1,
+                        "Q7": 5,
+                        "Q8": 8,
+                        "Q9": 4,
+                        "Q10": 7,
+                        "Total": 51
+                    },
+                    {
+                        "__EMPTY": "Student_9",
+                        "Q1": 10,
+                        "Q2": 2,
+                        "Q3": 2,
+                        "Q4": 12,
+                        "Q5": 8,
+                        "Q6": 1,
+                        "Q7": 7,
+                        "Q8": 5,
+                        "Q9": 0,
+                        "Q10": 7,
+                        "Total": 54
+                    },
+                    {
+                        "__EMPTY": "Student_10",
+                        "Q1": 6,
+                        "Q2": 1,
+                        "Q3": 4,
+                        "Q4": 8,
+                        "Q5": 9,
+                        "Q6": 0,
+                        "Q7": 0,
+                        "Q8": 8,
+                        "Q9": 4,
+                        "Q10": 2,
+                        "Total": 42
+                    },
+                    {
+                        "__EMPTY": "Student_11",
+                        "Q1": 5,
+                        "Q2": 0,
+                        "Q3": 3,
+                        "Q4": 7,
+                        "Q5": 7,
+                        "Q6": 2,
+                        "Q7": 5,
+                        "Q8": 5,
+                        "Q9": 3,
+                        "Q10": 5,
+                        "Total": 42
+                    },
+                    {
+                        "__EMPTY": "Student_12",
+                        "Q1": 8,
+                        "Q2": 2,
+                        "Q3": 6,
+                        "Q4": 5,
+                        "Q5": 6,
+                        "Q6": 4,
+                        "Q7": 0,
+                        "Q8": 8,
+                        "Q9": 7,
+                        "Q10": 10,
+                        "Total": 56
+                    },
+                    {
+                        "__EMPTY": "Student_13",
+                        "Q1": 5,
+                        "Q2": 2,
+                        "Q3": 1,
+                        "Q4": 13,
+                        "Q5": 14,
+                        "Q6": 4,
+                        "Q7": 3,
+                        "Q8": 5,
+                        "Q9": 5,
+                        "Q10": 3,
+                        "Total": 55
+                    },
+                    {
+                        "__EMPTY": "Student_14",
+                        "Q1": 8,
+                        "Q2": 0,
+                        "Q3": 5,
+                        "Q4": 8,
+                        "Q5": 7,
+                        "Q6": 0,
+                        "Q7": 2,
+                        "Q8": 7,
+                        "Q9": 6,
+                        "Q10": 8,
+                        "Total": 51
+                    },
+                    {
+                        "__EMPTY": "Student_15",
+                        "Q1": 10,
+                        "Q2": 6,
+                        "Q3": 2,
+                        "Q4": 8,
+                        "Q5": 4,
+                        "Q6": 5,
+                        "Q7": 7,
+                        "Q8": 4,
+                        "Q9": 5,
+                        "Q10": 10,
+                        "Total": 61
+                    },
+                    {
+                        "__EMPTY": "Student_16",
+                        "Q1": 8,
+                        "Q2": 3,
+                        "Q3": 3,
+                        "Q4": 4,
+                        "Q5": 12,
+                        "Q6": 5,
+                        "Q7": 5,
+                        "Q8": 4,
+                        "Q9": 2,
+                        "Q10": 3,
+                        "Total": 49
+                    },
+                    {
+                        "__EMPTY": "Student_17",
+                        "Q1": 9,
+                        "Q2": 4,
+                        "Q3": 4,
+                        "Q4": 13,
+                        "Q5": 6,
+                        "Q6": 2,
+                        "Q7": 0,
+                        "Q8": 4,
+                        "Q9": 6,
+                        "Q10": 6,
+                        "Total": 54
+                    },
+                    {
+                        "__EMPTY": "Student_18",
+                        "Q1": 10,
+                        "Q2": 3,
+                        "Q3": 12,
+                        "Q4": 9,
+                        "Q5": 4,
+                        "Q6": 2,
+                        "Q7": 0,
+                        "Q8": 8,
+                        "Q9": 4,
+                        "Q10": 6,
+                        "Total": 58
+                    },
+                    {
+                        "__EMPTY": "Student_19",
+                        "Q1": 7,
+                        "Q2": 3,
+                        "Q3": 1,
+                        "Q4": 12,
+                        "Q5": 12,
+                        "Q6": 1,
+                        "Q7": 0,
+                        "Q8": 5,
+                        "Q9": 5,
+                        "Q10": 7,
+                        "Total": 53
+                    },
+                    {
+                        "__EMPTY": "Student_20",
+                        "Q1": 9,
+                        "Q2": 5,
+                        "Q3": 4,
+                        "Q4": 6,
+                        "Q5": 12,
+                        "Q6": 2,
+                        "Q7": 6,
+                        "Q8": 8,
+                        "Q9": 2,
+                        "Q10": 10,
+                        "Total": 64
+                    },
+                    {
+                        "__EMPTY": "Max Points",
+                        "Q1": 11,
+                        "Q2": 8,
+                        "Q3": 17,
+                        "Q4": 19,
+                        "Q5": 15,
+                        "Q6": 12,
+                        "Q7": 17,
+                        "Q8": 9,
+                        "Q9": 11,
+                        "Q10": 14,
+                        "Total": 133
+                    }
+                ]
+            },
            is_loaded: false,
+
+           selected_question_number: null,
+           sections: [],
 
            test: new data_classes.Test({}),
 
@@ -152,6 +509,23 @@ export default {
        }
    },
    computed: {
+        selected_question_index(){return this.test.questions.map(e => e.question_number).indexOf(this.selected_question_number)},
+        selected_question: {
+            get(){
+            const index = this.selected_question_index
+            if (index != -1){
+                return this.test.questions[index]
+            }
+            return null
+            },
+            set(val){
+                const index = this.selected_question_index
+                if (index != -1){
+                    // set without changing reference
+                    return this.test.questions[index].set(val)
+                }
+            }
+        },
         heatmapData(){
             const series = []
 
@@ -215,8 +589,8 @@ export default {
    },
    methods: {
         async loadClassData(){
-            const data = await excelFileToJSON(this.excel_file)
-
+            const data = this.excel_file ? await excelFileToJSON(this.excel_file) : this.test_data
+            console.log(this.excel_file)
             const questions = []
 
             console.log(data)
@@ -265,6 +639,34 @@ export default {
             })
             this.is_loaded = true
             console.log(this.test)
+        },
+        clickSectionCheckbox(section){
+            const index = this.selected_question.sections.indexOf(section)
+            // found
+            if (index != -1) {
+                this.selected_question.sections.splice(index, 1)
+            } else {
+                // not found
+                this.selected_question.sections.push(section)
+
+            }
+        },
+        deleteSection(section){
+            if (window.confirm("Weet je zeker dat je " + section.name + " overal wilt verwijderen")) {
+                const index = this.sections.indexOf(section)
+
+                this.sections.splice(index,1)
+                
+                this.test.questions.forEach( (question, question_index) => {
+                    question.sections.forEach((question_section, section_index) => {
+                        if (section.id == question_section.id){
+                            this.test.questions[question_index].sections.splice(section_index, 1)
+                        }
+                    })
+                })
+            }
+            
+            
         }
    },
    watch: {
@@ -275,8 +677,8 @@ export default {
    // created() {
    
    // },
-   mounted() {
-   
+   async mounted() {
+    await this.loadClassData()
    },
    
    
