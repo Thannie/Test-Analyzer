@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up / Log In - TestResults</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .animate-slideIn {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .flip-container {
+            perspective: 1000px;
+            height: 100%;
+            max-height: 100vh;
+        }
+
+        .flipper {
+            transition: 0.6s;
+            transform-style: preserve-3d;
+            height: 100%;
+            position: relative;
+        }
+
+        .flip-container.flipped .flipper {
+            transform: rotateY(180deg);
+        }
+
+        .front,
+        .back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+
+        .back {
+            transform: rotateY(180deg);
+        }
+
+        html, body {
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="flip-container bg-white rounded-lg shadow-xl overflow-hidden w-full max-w-4xl animate-fadeIn">
+        <div class="flipper h-full">
+            <!-- Signup form (front) -->
+            <div class="front flex">
+                <div class="bg-blue-600 text-white p-12 flex flex-col justify-center w-1/2">
+                    <h2 class="text-3xl font-bold mb-4 animate-slideIn">Welcome to TestResults!</h2>
+                    <p class="mb-8 animate-slideIn" style="animation-delay: 0.1s;">
+                        Sign up to access all our amazing features and start analyzing your test results today.
+                    </p>
+                    <a href="#" class="text-blue-200 hover:text-white transition-colors duration-300 animate-slideIn flip-trigger"
+                        style="animation-delay: 0.2s;">Already have an account? Log in</a>
+                </div>
+
+                <div class="p-12 w-1/2">
+                    <h3 class="text-2xl font-semibold mb-6 animate-slideIn">Create Account</h3>
+
+                    <!-- Social signup options -->
+                    <div class="flex justify-center space-x-4 mb-6 animate-slideIn" style="animation-delay: 0.1s;">
+                        <button class="p-2 border rounded-full hover:bg-gray-100 transition-colors duration-300">
+                            <img src="/api/placeholder/24/24" alt="Google" class="w-6 h-6">
+                        </button>
+                        <button class="p-2 border rounded-full hover:bg-gray-100 transition-colors duration-300">
+                            <img src="/api/placeholder/24/24" alt="Facebook" class="w-6 h-6">
+                        </button>
+                        <button class="p-2 border rounded-full hover:bg-gray-100 transition-colors duration-300">
+                            <img src="/api/placeholder/24/24" alt="GitHub" class="w-6 h-6">
+                        </button>
+                        <button class="p-2 border rounded-full hover:bg-gray-100 transition-colors duration-300">
+                            <img src="/api/placeholder/24/24" alt="LinkedIn" class="w-6 h-6">
+                        </button>
+                    </div>
+
+                    <p class="text-center text-gray-500 mb-6 animate-slideIn" style="animation-delay: 0.2s;">or use your email for registration</p>
+
+                    <!-- Signup form -->
+                    <form class="space-y-4 animate-slideIn" style="animation-delay: 0.3s;">
+                        <input type="text" placeholder="Full Name" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all duration-300">
+                        <input type="email" placeholder="Email Address" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all duration-300">
+                        <input type="password" placeholder="Password" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all duration-300">
+                        <input type="password" placeholder="Confirm Password" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all duration-300">
+                        <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors duration-300">Sign Up</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Login form (back) -->
+            <div class="back flex">
+                <div class="bg-blue-600 text-white p-12 flex flex-col justify-center w-1/2">
+                    <h2 class="text-3xl font-bold mb-4">Welcome Back!</h2>
+                    <p class="mb-8">Log in to access your TestResults account and view your latest analyses.</p>
+                    <a href="#" class="text-blue-200 hover:text-white transition-colors duration-300 flip-trigger">Don't have an account? Sign up</a>
+                </div>
+
+                <div class="p-12 w-1/2">
+                    <h3 class="text-2xl font-semibold mb-6">Log In</h3>
+                    <form class="space-y-4">
+                        <input type="email" placeholder="Email Address" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all duration-300">
+                        <input type="password" placeholder="Password" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all duration-300">
+                        <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition-colors duration-300">Log In</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.querySelector('.flip-container');
+            const flipTriggers = document.querySelectorAll('.flip-trigger');
+
+            flipTriggers.forEach(trigger => {
+                trigger.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    container.classList.toggle('flipped');
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -6,6 +6,8 @@ v-app
             v-tab(value="analyse" v-if="is_loaded") Analyseer
             v-tab(value="edit" v-if="is_loaded") Bewerk
         v-window(v-model='selected_tab')
+
+            // Page "Laad"-code starts here!
             v-window-item(value="load") 
                 v-row(style="max-height: calc(100dvh - 60px)")
                     v-col.v-col-12.v-col-sm-4
@@ -86,6 +88,8 @@ v-app
                                 prepend-icon="mdi-plus"
                                 @click="sections.push(new data_classes.Section({}))"
                             ) Nieuw leerdoel
+
+            // Page "Analyseer"-code starts here! 
             v-window-item(value="analyse")
                 //- :headers="resultHeaders"
                 v-select(v-model="result_data_type" :items="['points', 'percent']")
@@ -116,7 +120,7 @@ v-app
                 )
                 
 
-
+            // Page "Bewerk"-code starts here!
             v-window-item(value="edit")
 
 </template>
