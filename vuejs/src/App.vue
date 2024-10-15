@@ -181,7 +181,7 @@ v-app
                 )
                 
 
-
+            // Page "Bewerk"-code starts here!
             v-window-item(value="edit")
 
 </template>

@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, redirect, session, url_for
-import pandas as pd
+from flask import Flask, render_template, request, redirect, session, url_for, flash #type: ignore
+import pandas as pd #type: ignore
 import json
-import plotly
-import plotly.express as px
+import plotly #type: ignore
+import plotly.express as px #type: ignore
 import os
-from werkzeug.utils import secure_filename
+from werkzeug.utils import secure_filename #type: ignore
 from load_data import load_data
 
 # get the absolute path of the directory containing this file
@@ -27,9 +27,14 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# routes the app for the home page and the upload page
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route('/')
 def index():
+    return render_template("index.html")
+
+# routes the app for the home page and the upload page
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -92,6 +97,44 @@ def results():
 @app.route('/usage')
 def usage():
     return render_template("usage.html")
+
+# TODO: implement the scan template
+@app.route('/scan')
+def scan():
+    return "Hello, World!"
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        # TODO: implement the signup form logic
+        # 1. Validate the form data
+        # 2. Check if the email is already registered
+        # 3. Hash the password
+        # 4. Save the new user to your database
+        # 5. Log the user in or send a confirmation email
+        
+        # For now, just redirect to a success page
+        flash('Sign up successful! Please log in.', 'success')
+        return redirect(url_for('login'))
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # TODO: implement the login form logic
+        # 1. Validate the form data
+        # 2. Check the user's credentials against your database
+        # 3. If valid, log the user in (set up a session)
+        # 4. If not valid, show an error message
+        
+        # For now, just redirect to a success page
+        flash('Login successful!', 'success')
+        return redirect(url_for('dashboard'))
+    return render_template('login.html')
+
+@app.route('/test')
+def test():
+    return render_template('test.html')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
