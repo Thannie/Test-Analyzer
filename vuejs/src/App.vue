@@ -5,7 +5,7 @@ v-app
             v-tab(value="load") Laad
             v-tab(value="analyse" v-if="is_loaded") Analyseer
             v-tab(value="edit" v-if="is_loaded") Bewerk
-        v-window(v-model='selected_tab')
+        v-window(v-model='selected_tab' style="height: calc(100vh - 48px); position: relative")
             v-window-item(value="load") 
                 v-row(style="max-height: calc(100dvh - 60px)")
                     v-col.v-col-12.v-col-sm-4
@@ -86,20 +86,85 @@ v-app
                                 prepend-icon="mdi-plus"
                                 @click="sections.push(new data_classes.Section({}))"
                             ) Nieuw leerdoel
-            v-window-item(value="analyse")
-                //- :headers="resultHeaders"
-                v-select(v-model="result_data_type" :items="['points', 'percent']")
-                v-data-table(
-                    :items="resultItems"
-                    density="compact"
-                )
-                    template(v-slot:item="{ item }")
-                        tr  
-                            td(v-for="val in Object.values(item)") 
-                                | {{ (result_data_type == "percent" && !(typeof val == 'string')) ? Math.round(val * 100) : val }}
+                            
+            v-window-item(value="analyse").mh-100
+                v-row(no-gutters).h-100
+                    v-col(style="max-width: 200px")
+                        v-list()
+                            v-list-item(
+                                title="Type analyse"
+                            )
+                            v-divider
+                            
+                            v-list-item(
+                                v-for="item in [{'title': 'Student', 'value': 'student'}, {'title': 'Vraag', 'value': 'question'}, {'title': 'Leerdoel', 'value': 'section'}, ]"
+                                :title="item.title"
+                                :value="item.value"
+                                :active="selected_analysis_type == item.value"
+                                @click="selected_analysis_type = item.value; selected_analysis_item_id = 'overview'"
+                            )
 
+                    v-divider(vertical)
+                    v-col(style="max-width: 200px").h-100
+                        v-list().h-100
+                            v-list-item(
+                                title="Selecteer specifiek"
+                            )
+                            v-divider
+                            v-list-item(
+                                title="Overzicht"
+                                :value="'overview'"
+                                @click="selected_analysis_item_id = 'overview'"
+                                :active="selected_analysis_item_id == 'overview'"
+                            )
+                            v-divider
+
+                            v-list-item(
+                                v-for="item in selected_nav_list_items"
+                                :title="item.title"
+                                :value="item.id"
+                                :active="selected_analysis_item_id == item.id"
+                                @click="selected_analysis_item_id = item.id"
+                            )
+
+                    v-divider(vertical)
+
+                    v-col.h-100()
+                        v-select(v-model="test.data_type" :items="['points', 'percent']")
+                        div.pa-2(style="max-height: calc(100% - 56px); overflow-y: scroll;")
+                            div(
+                                v-if="selected_analysis_item_id == 'overview'"
+                            )
+                                h1 Overview
+                                v-divider
+                                //- div(v-if="selected_analysis_type == 'student'")
+                                //- div(v-if="selected_analysis_type == 'question'")
+                                //- div(v-if="selected_analysis_type == 'section'")
+
+                                    //- :headers="resultHeaders"
+                                v-expansion-panels(multiple)
+                                    v-expansion-panel()
+                                        v-expansion-panel-title Tabel
+                                        v-expansion-panel-text
+                                            v-data-table(
+                                                :items="resultOverviewItems"
+                                                density="compact"
+                                            )
+                                                template(v-slot:item="{ item }")
+                                                    tr  
+                                                        td(v-for="val in Object.values(item)") 
+                                                            | {{ (test.data_type == "percent" && !(typeof val == 'string')) ? Math.round(val * 100) / 100 : val }}
+                                    v-expansion-panel()
+                                        v-expansion-panel-title Extra
+                                        v-expansion-panel-text
+                                            b Als studenten
+                                            p download hier een pdf met uitprintbare resultaten (per vraag en per leerdoel) per student
+                                            b Als vraag
+                                            p zie als docent hier welke vragen het slechts gemaakt zijn
+                                            b Als leerdoel
+                                            p zie als docent hier welke leerdoel het slechts gemaakt zijn
                 //- p {{ resultItems}}
-
+            //- div
                 v-select(v-model="comparision_type" :items="['question', 'student']")
                 apexchart(
                     width="800px"
@@ -131,23 +196,24 @@ import {  excelFileToJSON, sum } from '@/helpers'
 
 
 export default {
-   name: 'App',
-   components: {
+    name: 'App',
+    components: {
     
-   },
-   props: {
+    },
+    props: {
    
-   },
-   emits: [],
-   setup() {
+    },
+    emits: [],
+    setup() {
        return { data_classes }
-   },
-   data(){
+    },
+    data(){
         return {
-           selected_tab: 'load',
+           selected_tab: 'analyse',
 
-           excel_file: null,
-           test_data: {
+            // loading tab
+            excel_file: null,
+            test_data: {
                 "Sheet1": [
                     {
                         "__EMPTY": "Student_1",
@@ -445,12 +511,16 @@ export default {
                     }
                 ]
             },
-           is_loaded: false,
+            is_loaded: false,
+            test: new data_classes.Test({}),
 
-           selected_question_number: null,
-           sections: [],
+            // loading tab data
+            selected_question_number: null,
+            sections: [],
 
-           test: new data_classes.Test({}),
+            // analysis tab data
+            selected_analysis_type: 'student',
+            selected_analysis_item_id: null,
 
             // table
             result_data_type: 'points',
@@ -526,6 +596,23 @@ export default {
                 }
             }
         },
+        selected_nav_list_items(){
+            switch (this.selected_analysis_type) {
+                case "student":
+                    return this.test.students.map(e => {return {title: e.name, id: e.id}})
+                    break;
+                case "question":
+                    return this.test.questions.map(e => {return {title: 'Vraag '+e.question_number, id: e.id}})
+                    break;
+                case "section":
+                    return this.test.sections.map(e => {return {title: e.name, id: e.id}})
+                    break;
+                                    
+                default:
+                    return []
+                    break;
+            }
+        },
         heatmapData(){
             const series = []
 
@@ -586,6 +673,43 @@ export default {
             return this.test.getJsonRows(this.result_data_type)
             
         },
+        resultOverviewItems(){
+            const grouped_data = {}
+            switch (this.selected_analysis_type) {
+                case "student":
+
+                    this.test.students.forEach(e => {
+                        grouped_data[e.id] = this.test.results.getStudentResults(e.id)
+                    })
+                    break;
+                case "question":
+                    this.test.questions.forEach(e => {
+                        grouped_data[e.id] = this.test.results.getQuestionResults(e.id)
+                    })
+                    break;
+                case "section":
+                    this.test.sections.forEach(e => {
+                        grouped_data[e.id] = this.test.results.getSectionResults(e.id)
+                    })                
+                    break;
+                                    
+                default:
+                    break;
+            }
+            return Object.keys(grouped_data).map(item_id => {
+                const data = grouped_data[item_id]
+                return {
+                    id: item_id,
+                    average: data.average,
+                    standard_dev: data.standard_deviation,
+                    grade: data.grade,
+                    total_points: data.points
+                }
+            })
+
+            
+
+        }
    },
    methods: {
         async loadClassData(){
@@ -613,7 +737,8 @@ export default {
                 const student_id = row[STUDENT_ID_KEY]
                 if (student_id =="Max Points"){return}
                 const current_student = new data_classes.Student({
-                    id: student_id
+                    id: student_id,
+                    name: student_id
                 })
                 students.push(current_student)
 
@@ -637,6 +762,7 @@ export default {
                 questions: questions,
                 students: students
             })
+            this.test.results.test = this.test
             this.is_loaded = true
             console.log(this.test)
         },
@@ -668,23 +794,31 @@ export default {
             
             
         }
-   },
-   watch: {
+    },
+    watch: {
         excel_file(){
             this.loadClassData
         }
-   },
-   // created() {
+    },
+    // created() {
    
-   // },
-   async mounted() {
-    await this.loadClassData()
-   },
+    // },
+    async mounted() {
+        await this.loadClassData()
+        this.selected_tab = 'analyse'
+    },
    
    
 }
 </script>
    
 <style scoped>
-   
+.mh-100 {
+    max-height: 100%
+}
+</style>
+<style>
+body {
+    overflow: hidden; /* Hide scrollbars */
+}
 </style>

@@ -42,7 +42,7 @@ class BaseClass {
 
 // GradeFormula class
 class GradeFormula extends BaseClass {
-    constructor(id = uuidv4(), name = "Method name", method = (percentage) => (9 * percentage + 1)) {
+    constructor(id = uuidv4(), name = "Method name", method = (percent) => (9 * percent + 1)) {
         super()
         this.id = id;
         this.name = name;
@@ -65,9 +65,10 @@ class Question extends BaseClass {
 data_classes.Question = Question
 
 class Student extends BaseClass {
-    constructor({id = uuidv4()}){
+    constructor({id = uuidv4(), name=""}){
         super()
         this.id = id
+        this.name = name
     }
 }
 data_classes.Student = Student
@@ -98,7 +99,7 @@ class Result extends BaseClass {
         this._points = value; // Ensure points are set
     }
 
-    get percentage() {
+    get percent() {
         return this.points / this.total_points;
     }
 }
@@ -122,7 +123,7 @@ class ResultBundle extends BaseClass {
     }
 
     get grade() {
-        return this.test.gradeFormula.method(this.points, this.total_points);
+        return this.test.grade_formula.method(this.points / this.total_points);
     }
 
     get points() {
@@ -132,14 +133,42 @@ class ResultBundle extends BaseClass {
     get total_points() {
         return this.results.reduce((sum, result) => sum + result.total_points, 0);
     }
-
     get average_points(){
         return this.points / this.results.length
     }
 
-    get average_percentage(){
-        return this.results.reduce((sum, result) => sum + result.percentage, 0) / this.results.length;
+    get average_percent(){
+        return this.results.reduce((sum, result) => sum + result.percent, 0) / this.results.length;
     }
+    get average(){
+        if (this.test.data_type == 'points'){
+            return this.average_points
+        } 
+        if (this.test.data_type == 'percent'){
+            return this.average_percent * 100
+        } 
+    }
+
+
+    get standard_deviation_points(){
+        return standardDeviation(this.results.map(result => result.points));
+    }
+
+    get standard_deviation_percent(){
+        return standardDeviation(this.results.map(result => result.percent));
+    }
+    get standard_deviation(){
+        if (this.test.data_type == 'points'){
+            return this.standard_deviation_points
+        } 
+        if (this.test.data_type == 'percent'){
+            return this.standard_deviation_percent * 100
+        } 
+    }
+
+
+
+
 
     addResult(result){
         this.results.push(result)
@@ -171,7 +200,7 @@ class ResultBundle extends BaseClass {
     }
 
     standardDeviation() {
-        return standardDeviation(this.results.map(result => result.percentage));
+        return standardDeviation(this.results.map(result => result.percent));
     }
 
     getTypeCorrelation(id_type, id1, id2) {
@@ -202,8 +231,8 @@ class ResultBundle extends BaseClass {
         const list1 = relatedList.map(relation => relation[0]);
         const list2 = relatedList.map(relation => relation[1]);
 
-        const value1 = list1.map(x => x.percentage);
-        const value2 = list2.map(x => x.percentage);
+        const value1 = list1.map(x => x.percent);
+        const value2 = list2.map(x => x.percent);
 
         return correlation(value1, value2);
     }
@@ -235,17 +264,23 @@ class Test extends BaseClass {
         grade_formula = new GradeFormula({}), 
         questions=[],
         students=[],
-        sections=[]
+        sections=[],
+
+        data_type='points'
     }) {
         super()
         this.id = id;
         this.name = name;
+        results.test = this
         this.results = results;
+        
         this.original_grade_formula = grade_formula;
         this.grade_formula = grade_formula; // changed by user
         this.questions = questions
         this.students = students
         this.sections = sections
+
+        this.data_type = data_type
     }
     getJsonRows(data_type="point"){
         
@@ -255,7 +290,7 @@ class Test extends BaseClass {
                     return result.points
                     break;
                 case "percent":
-                    return result.percentage
+                    return result.percent
 
                     break;          
                 default:
@@ -297,7 +332,7 @@ class Test extends BaseClass {
                     total: result_bundle.points,
                     average: {
                         points: result_bundle.average_points,
-                        percent: result_bundle.average_percentage
+                        percent: result_bundle.average_percent
                     }[data_type]
                 }
                 return data
