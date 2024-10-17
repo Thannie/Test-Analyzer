@@ -129,7 +129,7 @@ v-app
 
                     v-divider(vertical)
 
-                    v-col.h-100()
+                    v-col.h-100(style="max-width: calc(100% - 400px)")
                         v-select(v-model="test.data_type" :items="['points', 'percent']")
                         div.pa-2(style="max-height: calc(100% - 56px); overflow-y: scroll;")
                             div(
@@ -157,13 +157,18 @@ v-app
                                     v-expansion-panel()
                                         v-expansion-panel-title Extra
                                         v-expansion-panel-text
-                                            b Als studenten
-                                            p download hier een pdf met uitprintbare resultaten (per vraag en per leerdoel) per student
-                                            b Als vraag
-                                            p zie als docent hier welke vragen het slechts gemaakt zijn
-                                            b Als leerdoel
-                                            p zie als docent hier welke leerdoel het slechts gemaakt zijn
-                //- p {{ resultItems}}
+                                            div(v-if="selected_analysis_type == 'student'")
+                                                b Als studenten
+                                                p download hier een pdf met uitprintbare resultaten (per vraag en per leerdoel) per student
+                                                b Als vraag
+                                                p zie als docent hier welke vragen het slechts gemaakt zijn
+                                                b Als leerdoel
+                                                p zie als docent hier welke leerdoel het slechts gemaakt zijn
+                            div(
+                                v-else
+                            )   
+                                h1 {{ selected_analysis_item_id }}
+
             //- div
                 v-select(v-model="comparision_type" :items="['question', 'student']")
                 apexchart(
@@ -189,7 +194,7 @@ v-app
 <script>
 // Data 
 import data_classes from '@/classes'
-import {  excelFileToJSON, sum } from '@/helpers'
+import {  excelFileToJSON, sum, uncircularStringify } from '@/helpers'
 
 
 // Components
@@ -205,7 +210,7 @@ export default {
     },
     emits: [],
     setup() {
-       return { data_classes }
+       return { data_classes, uncircularStringify }
     },
     data(){
         return {
@@ -599,13 +604,13 @@ export default {
         selected_nav_list_items(){
             switch (this.selected_analysis_type) {
                 case "student":
-                    return this.test.students.map(e => {return {title: e.name, id: e.id}})
+                    return this.test.students.map(e => {return {title: e.name, id: e.id, item: e}})
                     break;
                 case "question":
-                    return this.test.questions.map(e => {return {title: 'Vraag '+e.question_number, id: e.id}})
+                    return this.test.questions.map(e => {return {title: 'Vraag '+e.question_number, id: e.id, item: e}})
                     break;
                 case "section":
-                    return this.test.sections.map(e => {return {title: e.name, id: e.id}})
+                    return this.test.sections.map(e => {return {title: e.name, id: e.id, item: e}})
                     break;
                                     
                 default:
@@ -613,6 +618,21 @@ export default {
                     break;
             }
         },
+        selected_item:{
+            get(){
+                return this.selected_nav_list_items.find( e=> e.id == this.selected_analysis_item_id)
+            },
+            set(val){
+                const index = this.test[selected_analysis_type+"s"].findIndex(e=>e.id==this.selected_analysis_item_id)
+                if (index != -1){
+                    this.test[selected_analysis_type+"s"][index] = val
+                }
+            }
+        },
+        selected_item_results(){
+            return this.selectedTypeGroupsById[this.selected_analysis_item_id]
+        },
+        
         heatmapData(){
             const series = []
 
@@ -663,17 +683,8 @@ export default {
             }]
 
         },
-        // resultHeaders(){
-        //     return {
 
-        //     }
-        // },
-        resultItems(){
-            // student as row
-            return this.test.getJsonRows(this.result_data_type)
-            
-        },
-        resultOverviewItems(){
+        selectedTypeGroupsById(){
             const grouped_data = {}
             switch (this.selected_analysis_type) {
                 case "student":
@@ -696,6 +707,11 @@ export default {
                 default:
                     break;
             }
+
+            return grouped_data
+        },
+        resultOverviewItems(){
+            const grouped_data = this.selectedTypeGroupsById
             return Object.keys(grouped_data).map(item_id => {
                 const data = grouped_data[item_id]
                 return {
@@ -706,10 +722,8 @@ export default {
                     total_points: data.points
                 }
             })
-
-            
-
-        }
+        },
+        
    },
    methods: {
         async loadClassData(){

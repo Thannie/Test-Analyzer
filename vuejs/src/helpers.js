@@ -1,7 +1,7 @@
 import {read, utils} from 'xlsx'
 import _ from 'lodash'
-
-/**
+import CircularJSON from 'circular-json'
+ /**
  * Loads the data and does a quick analysis
  *
  * Jonathan -- 28-09-'24
@@ -32,7 +32,12 @@ function excelFileToJSON(file) {
 
 function sum(l){return l.reduce((data, current) => data+current,0)}
 
+function uncircularStringify(obj){
+    return CircularJSON.stringify(obj)
+}
+
 export {
     excelFileToJSON,
-    sum
+    sum,
+    uncircularStringify
 }

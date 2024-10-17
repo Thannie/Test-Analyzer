@@ -9,6 +9,7 @@
   "dependencies": {
     "@mdi/font": "7.4.47",
     "apexcharts": "^3.54.0",
+    "circular-json": "^0.5.9",
     "firebase": "^10.14.0",
     "lodash": "^4.17.21",
     "pinia": "^2.2.4",

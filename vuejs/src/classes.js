@@ -28,6 +28,18 @@ function correlation(list1, list2) {
 }
 data_classes.correlation = correlation
 
+class NormalDistribution {
+    constructor({
+        mean=10,
+        standard_deviation=3,
+        is_binom=false
+    }){
+        this.mean = 10
+        this.standard_deviation = 3
+    }
+}
+data_classes.NormalDistribution = NormalDistribution
+
 class BaseClass {
     constructor(){}
     // set without changing reference
@@ -39,6 +51,8 @@ class BaseClass {
         })
     }
 }
+
+
 
 // GradeFormula class
 class GradeFormula extends BaseClass {
