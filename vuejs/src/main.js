@@ -10,6 +10,7 @@ import vuePugPlugin from 'vue-pug-plugin'
 import { createPinia } from 'pinia'
 const pinia = createPinia()
 import VueApexCharts from "vue3-apexcharts";
+import { vFullscreenImgInstall } from 'maz-ui'
 
 
 // Components
@@ -24,6 +25,7 @@ registerPlugins(app)
 app
     .use(VueApexCharts)
     .use(pinia)
+    .use(vFullscreenImgInstall)
     .use(vuePugPlugin)
 
 app.mount('#app')

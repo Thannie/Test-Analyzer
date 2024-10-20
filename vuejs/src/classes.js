@@ -1,15 +1,10 @@
 // Importing required libraries (not needed in the same way as Python)
 import { v4 as uuidv4 } from 'uuid' 
-import { sum } from '@/helpers'
+import { sum, erf, average, standardDeviation } from '@/helpers'
+import jsStat from 'jstat'
 
 const data_classes = {}
 
-// Standard Deviation function
-function standardDeviation(data) {
-    const average = sum(data) / data.length;
-    return Math.sqrt(data.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / (data.length - 1));
-}
-data_classes.standardDeviation = standardDeviation
 
 // Correlation function
 function correlation(list1, list2) {
@@ -32,10 +27,56 @@ class NormalDistribution {
     constructor({
         mean=10,
         standard_deviation=3,
-        is_binom=false
+        values=null
     }){
-        this.mean = 10
-        this.standard_deviation = 3
+        if (values){
+            mean = average(values)
+            standard_deviation = standardDeviation(values)
+        }
+
+        this.mean = mean
+        this.standard_deviation =standard_deviation
+    }
+    steekproef(n){
+        return NormalDistribution({mean: this.mean, standard_deviation: this.standard_deviation/ Math.sqrt(n)})
+    }
+    is_risk(alfa, steekproef_n, steekproef_resultaat){
+        const steekproeven = this.steekproef(steekproef_n)
+    
+        const voorschrift = steekproeven.invNorm(alfa/2)
+    
+        const h0 = steekproeven.mean
+        const h1 = steekproef_resultaat < voorschrift[0] && steekproef_resultaat > voorschrift[1]
+    
+        return !h1
+    }
+    pdf(x){
+        return (1 / (this.standard_deviation * Math.sqrt(2*Math.PI)) * Math.pow(Math.E, -0.5*Math.pow((x-this.mean) / this.standard_deviation, 2)))
+    }
+    erf(x){
+
+    }
+    cdf(x){
+        return 0.5*(1+erf((x-this.mean) / (this.standard_deviation*Math.SQRT2)))
+    }
+    invNorm(opp, dir='LEFT'){
+        if (dir=='LEFT'){
+            const inv = jsStat.normal.inv(opp, this.mean, this.standard_deviation)
+
+            return inv
+        } 
+        if (dir=='RIGHT'){
+            const inv = jsStat.normal.inv(opp, this.mean, this.standard_deviation)
+
+            return this.mean + (this.mean - inv)
+        }
+        if (dir == 'CENTER'){
+            const inv = jsStat.normal.inv((1-opp)/2, this.mean, this.standard_deviation)
+
+            // const diff = this.mean - inv
+            return [inv, this.mean - (inv - this.mean)]
+        }
+        return NaN
     }
 }
 data_classes.NormalDistribution = NormalDistribution
