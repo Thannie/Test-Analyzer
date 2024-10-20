@@ -1,0 +1,50 @@
+[debug] [2024-10-20T14:26:10.008Z] ----------------------------------------------------------------------
+[debug] [2024-10-20T14:26:10.012Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\joost\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2024-10-20T14:26:10.012Z] CLI Version:   13.13.0
+[debug] [2024-10-20T14:26:10.013Z] Platform:      win32
+[debug] [2024-10-20T14:26:10.013Z] Node Version:  v20.11.0
+[debug] [2024-10-20T14:26:10.013Z] Time:          Sun Oct 20 2024 16:26:10 GMT+0200 (Central European Summer Time)
+[debug] [2024-10-20T14:26:10.013Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-10-20T14:26:10.116Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-10-20T14:26:10.117Z] > authorizing via signed-in user (joostkkoch@gmail.com)
+[debug] [2024-10-20T14:26:10.117Z] [iam] checking project toetspws for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2024-10-20T14:26:10.120Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/toetspws:testIamPermissions [none]
+[debug] [2024-10-20T14:26:10.120Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/toetspws:testIamPermissions x-goog-quota-user=projects/toetspws
+[debug] [2024-10-20T14:26:10.121Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/toetspws:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2024-10-20T14:26:10.853Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/toetspws:testIamPermissions 200
+[debug] [2024-10-20T14:26:10.853Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/toetspws:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2024-10-20T14:26:10.854Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/toetspws [none]
+[debug] [2024-10-20T14:26:11.168Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/toetspws 200
+[debug] [2024-10-20T14:26:11.168Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/toetspws {"projectId":"toetspws","projectNumber":"771520566941","displayName":"toetsPWS","name":"projects/toetspws","resources":{"hostingSite":"toetspws"},"state":"ACTIVE","etag":"1_dfbf807e-c15c-461f-a1c6-4d4cb358e532"}
+[info] 
+[info] === Deploying to 'toetspws'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2024-10-20T14:26:11.177Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/toetspws/versions [none]
+[debug] [2024-10-20T14:26:11.177Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/toetspws/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2024-10-20T14:26:12.550Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/toetspws/versions 200
+[debug] [2024-10-20T14:26:12.550Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/toetspws/versions {"name":"projects/771520566941/sites/toetspws/versions/833bbcb3c4484a58","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[info] i  hosting[toetspws]: beginning deploy... 
+[info] i  hosting[toetspws]: found 14 files in dist 
+[debug] [2024-10-20T14:26:12.583Z] [hosting] uploading with 200 concurrency
+[debug] [2024-10-20T14:26:12.697Z] [hosting] hash cache [ZGlzdA] stored for 14 files
+[debug] [2024-10-20T14:26:12.697Z] [hosting][hash queue][FINAL] {"max":103,"min":8,"avg":50.357142857142854,"active":0,"complete":14,"success":14,"errored":0,"retried":0,"total":14,"elapsed":111}
+[debug] [2024-10-20T14:26:12.697Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/771520566941/sites/toetspws/versions/833bbcb3c4484a58:populateFiles [none]
+[debug] [2024-10-20T14:26:12.698Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/771520566941/sites/toetspws/versions/833bbcb3c4484a58:populateFiles {"files":{"/favicon.ico":"c236daea4c22c5f357acffec82fdf500e17660aa0e8fa9e165b45fdc549b7ff6","/index.html":"bf65eed00ca3fd19526a700c86a11e84555e2fe35558f9e532757e5b16062a46","/assets/MazSpinner-CDJhmIRl-Cem0RAsN.css":"3bd25f19b53998f13537b99f6ff3f6dcc5d1cb2ddbc4daae4dd397cdb47e1569","/assets/MazSpinner-CDJhmIRl-Bw_c518W.js":"b5a551647c97d01e5fe1996cc24401ad9c8ae63439c6b5da729add583477a7a4","/assets/x-mark-CnZwVvA7-C-7K7PFS.js":"b7c7d51b6f0625f1edbd93dd1118cd032cbdda0f61b42ecc81c01ba11a1167df","/assets/chevron-left-BqVOLRdC-3t9z9JMM.js":"5498b2901712b1766d70f73a52fb50bce12e5b922348d618eb30c158e70be11b","/assets/excel_example-D0G1hUjC.png":"8784f3c261e83e02eb794056578cf704f11a0fe6477d024d5f2a86c5c033b377","/assets/HAL-DfWmYuym.png":"b46f3a346144e426d9203eed5f4e004c40940ea4250b78daee25776589bd47a8","/assets/materialdesignicons-webfont-Dp5v-WZN.woff2":"d3803b781c686831fec9c680e23925c268d54de5d484239ea89dab258cbde77e","/assets/materialdesignicons-webfont-PXm3-2wK.woff":"3af54612b624ee7bf086bef60626d0e18cc26735b0c2f5b8aaa39a4e1219a20b","/assets/index-BGVaCvRm.css":"464c5eb64302dd54cabada5c03a70400152ea126020b6a894a74cf96d5ba0e92","/assets/index-8XXb0Hry.js":"591fdefdd6efbf796b7cd6eb7bd80a9a80003931cc9e8623d44abfa0fb3e0841","/assets/materialdesignicons-webfont-B7mPwVP_.ttf":"c3b223b088d2712e67f773b4f9589093ce20c1341ed97f3b9126c7862a3b3dc7","/assets/materialdesignicons-webfont-CSr8KVlo.eot":"c276bdf359a1523b065a75d58c5fb9e73b340f3ca1b2ff631a590599b005c042"}}
+[debug] [2024-10-20T14:26:13.292Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/771520566941/sites/toetspws/versions/833bbcb3c4484a58:populateFiles 200
+[debug] [2024-10-20T14:26:13.292Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/771520566941/sites/toetspws/versions/833bbcb3c4484a58:populateFiles {"uploadRequiredHashes":["bf65eed00ca3fd19526a700c86a11e84555e2fe35558f9e532757e5b16062a46","5498b2901712b1766d70f73a52fb50bce12e5b922348d618eb30c158e70be11b","591fdefdd6efbf796b7cd6eb7bd80a9a80003931cc9e8623d44abfa0fb3e0841","464c5eb64302dd54cabada5c03a70400152ea126020b6a894a74cf96d5ba0e92","b5a551647c97d01e5fe1996cc24401ad9c8ae63439c6b5da729add583477a7a4","b7c7d51b6f0625f1edbd93dd1118cd032cbdda0f61b42ecc81c01ba11a1167df"],"uploadUrl":"https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files"}
+[debug] [2024-10-20T14:26:13.293Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/bf65eed00ca3fd19526a700c86a11e84555e2fe35558f9e532757e5b16062a46 [none]
+[debug] [2024-10-20T14:26:13.293Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/bf65eed00ca3fd19526a700c86a11e84555e2fe35558f9e532757e5b16062a46 [stream]
+[debug] [2024-10-20T14:26:13.295Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/5498b2901712b1766d70f73a52fb50bce12e5b922348d618eb30c158e70be11b [none]
+[debug] [2024-10-20T14:26:13.295Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/5498b2901712b1766d70f73a52fb50bce12e5b922348d618eb30c158e70be11b [stream]
+[debug] [2024-10-20T14:26:13.296Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/591fdefdd6efbf796b7cd6eb7bd80a9a80003931cc9e8623d44abfa0fb3e0841 [none]
+[debug] [2024-10-20T14:26:13.296Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/591fdefdd6efbf796b7cd6eb7bd80a9a80003931cc9e8623d44abfa0fb3e0841 [stream]
+[debug] [2024-10-20T14:26:13.297Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/464c5eb64302dd54cabada5c03a70400152ea126020b6a894a74cf96d5ba0e92 [none]
+[debug] [2024-10-20T14:26:13.297Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/464c5eb64302dd54cabada5c03a70400152ea126020b6a894a74cf96d5ba0e92 [stream]
+[debug] [2024-10-20T14:26:13.299Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/b5a551647c97d01e5fe1996cc24401ad9c8ae63439c6b5da729add583477a7a4 [none]
+[debug] [2024-10-20T14:26:13.299Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/b5a551647c97d01e5fe1996cc24401ad9c8ae63439c6b5da729add583477a7a4 [stream]
+[debug] [2024-10-20T14:26:13.300Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/b7c7d51b6f0625f1edbd93dd1118cd032cbdda0f61b42ecc81c01ba11a1167df [none]
+[debug] [2024-10-20T14:26:13.300Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/toetspws/versions/833bbcb3c4484a58/files/b7c7d51b6f0625f1edbd93dd1118cd032cbdda0f61b42ecc81c01ba11a1167df [stream]
+[debug] [2024-10-20T14:26:13.302Z] [hosting][populate queue][FINAL] {"max":598,"min":598,"avg":598,"active":0,"complete":1,"success":1,"errored":0,"retried":0,"total":1,"elapsed":607}
+[debug] [2024-10-20T14:26:13.302Z] [hosting] uploads queued: 6

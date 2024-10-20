@@ -126,9 +126,9 @@ v-app
                                 @click="sections.push(new data_classes.Section({}))"
                             ) Nieuw leerdoel
                             
-            v-window-item(value="analyse").mh-100
-                v-row(no-gutters).h-100
-                    v-col(style="max-width: 200px")
+            v-window-item(value="analyse" style="overflow-y: scroll")
+                div.d-flex.flex-wrap.w-100
+                    div(style="width: 200px")
                         v-list()
                             v-list-item(
                                 title="Type analyse"
@@ -144,7 +144,7 @@ v-app
                             )
 
                     v-divider(vertical)
-                    v-col(style="max-width: 200px").h-100
+                    div(style="width: 200px;").h-100
                         v-list().h-100
                             v-list-item(
                                 title="Selecteer specifiek"
@@ -168,7 +168,7 @@ v-app
 
                     v-divider(vertical)
 
-                    v-col.h-100(style="max-width: calc(100% - 400px)")
+                    div(style="flex: 1; max-width: calc(100% - 400px); min-width: 400px")
                         v-select(v-model="test.data_type" :items="['points', 'percent']")
                         div.pa-2(style="max-height: calc(100% - 56px); overflow-y: scroll;")
                             div(
@@ -667,13 +667,17 @@ export default {
             gradechart_options: {
                 chart: {
                     type: 'line',
+
+
                 },
+
                 stroke: {
                     curve: 'straight',
                 },
                 tooltip: {
                     theme: 'dark'
-                }
+                },
+
 
             },
             calculate_normal: {
@@ -883,6 +887,9 @@ export default {
                         enabled: false
                     }
 
+                },
+                yaxis: {
+                    labels: {formatter: function(value) {return value.toFixed(3);}}
                 },
                 stroke: {
                     curve: 'monotoneCubic',
