@@ -254,6 +254,16 @@ v-app
                                                 )
                                                 b 
                                                 | = {{ calculateNormalResults.inv }}
+                                    v-expansion-panel
+                                        v-expansion-panel-title Correlaties
+                                        v-expansion-panel-text
+                                            apexchart(
+                                                width="800px"
+                                                height="600px"
+                                                :options="heatmap_options"
+                                                :series="heatmapData"
+                                            )
+
                             div(
                                 v-else-if="selected_item"
                             )   
@@ -265,21 +275,7 @@ v-app
                                     h1 {{ selected_item.name }}
 
 
-            //- div
-                v-select(v-model="comparision_type" :items="['question', 'student']")
-                apexchart(
-                    width="800px"
-                    height="600px"
-                    :options="heatmap_options"
-                    :series="heatmapData"
-                )
 
-                apexchart(
-                    width="800px"
-                    height="600px"
-                    :options="gradechart_options"
-                    :series="gradechartData"
-                )
                 
 
             // Page "Bewerk"-code starts here!
@@ -644,7 +640,7 @@ export default {
                 colors: ["#008FFB"],
                 heatmap: {
 
-                    min: 0,
+                    min: -1,
                     max: 1
                 },
                 tooltip: {
@@ -765,37 +761,45 @@ export default {
         
         heatmapData(){
             const series = []
-
-            switch (this.comparision_type) {
+            let items = []
+            let name_key = ""
+            switch (this.selected_analysis_type) {
                 case "question":
-                    this.test.questions.sort((a,b) => a.question_number - b.question_number).forEach(question1 => {
-                        const serie = {
-                            name: 'Q'+question1.question_number,
-                            data: []
-                        }
+                    items = this.test.questions.sort((a,b) => a.question_number - b.question_number)
+                    name_key = "question_number"
 
-                        this.test.questions.sort((a,b) => a.question_number - b.question_number).forEach(question2 => {
-                            if (question1.id == question2.id) {
-                                var result = 1
-                            } else {
-                                var result = this.test.results.getTypeCorrelation(
-                                    "question",
-                                    question1.id,
-                                    question2.id
-                                )
-                            }
-
-                            serie.data.push(result)
-                        })
-
-                        series.push(serie)
-                    })
                     break;
                 case "student":
-
+                    items = this.test.students
+                    name_key = 'name'
+                case "section":
+                    name_key = this.test.sections
+                    name_key = "name"
                 default:
                     break;
             }
+            items.forEach(item1 => {
+                const serie = {
+                    name: item1[name_key],
+                    data: []
+                }
+
+                items.forEach(item2 => {
+                    if (item1.id == item2.id) {
+                        var result = 1
+                    } else {
+                        var result = this.test.results.getTypeCorrelation(
+                            this.selected_analysis_type,
+                            item1.id,
+                            item2.id
+                        )
+                    }
+
+                    serie.data.push(result)
+                })
+
+                series.push(serie)
+            })
 
             
             return series
