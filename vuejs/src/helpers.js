@@ -64,7 +64,7 @@ function isNumeric(n) {
   }
 
 function getRandomID(){
-    return uuidv4.uuidv4()
+    return uuidv4()
 }
 
 export {

@@ -126,7 +126,7 @@ export default {
                 id: getRandomID(),
                 original: file,
                 red_pen: null,
-                preprossed: null,
+                preprossed: HAL,
                 sections: [],
                 questions: []
             })
@@ -141,7 +141,8 @@ export default {
     
     // },
     mounted() {
-    
+        this.addImage(HAL)
+        this.addImage(lege_student_row)
     },
     
     
