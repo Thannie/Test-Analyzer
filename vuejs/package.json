@@ -14,11 +14,12 @@
     "jstat": "^1.9.6",
     "lodash": "^4.17.21",
     "maz-ui": "^3.47.1",
-    "pinia": "^2.2.4",
+    "pinia": "^2.2.5",
     "roboto-fontface": "*",
     "uuid": "^10.0.0",
     "vue": "^3.4.31",
     "vue-pug-plugin": "^2.0.3",
+    "vue-router": "^4.4.5",
     "vue3-apexcharts": "^1.6.0",
     "vuetify": "^3.6.11",
     "xlsx": "^0.18.5"

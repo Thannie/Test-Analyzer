@@ -1,6 +1,7 @@
 import {read, utils} from 'xlsx'
 import _ from 'lodash'
 import CircularJSON from 'circular-json'
+import {v4 as uuidv4} from 'uuid'
  /**
  * Loads the data and does a quick analysis
  *
@@ -61,6 +62,11 @@ function decCount(num) {
 function isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
   }
+
+function getRandomID(){
+    return uuidv4.uuidv4()
+}
+
 export {
     excelFileToJSON,
     sum,
@@ -69,5 +75,6 @@ export {
     average,
     standardDeviation,
     decCount,
-    isNumeric
+    isNumeric,
+    getRandomID
 }
