@@ -30,22 +30,16 @@ v-card.pa-2.w-100.d-flex(
                 :src="images[selected_image_index]" 
             )
         div.d-flex.flex-row(v-else-if="images[selected_image_index] && images[selected_image_index].length == 2")
-            div.w-50
-                p Before
-                img(
-                    style="height: auto; max-width: 100%"
-                    v-fullscreen-img="{scaleOnHover: true}"
-                    :src="images[selected_image_index][0]" 
-                )
-            v-divider.mx-1(vertical)
-            div.w-50 
-                p After
-                img(
-                    v-if="images[selected_image_index][1]"
-                    style="height: auto; max-width: 100%"
-                    v-fullscreen-img="{scaleOnHover: true}"
-                    :src="images[selected_image_index][1]" 
-                )
+            div(v-for="(image, index) in images[selected_image_index]")
+                div(:style="{'width': 'calc((100% - (2px * '+images[selected_image_index].length+')) / '+images[selected_image_index].length+')'}")
+                    p {{ titles[index] }}
+                    img(
+                        style="height: auto; max-width: 100%"
+                        v-fullscreen-img="{scaleOnHover: true}"
+                        :src="images[selected_image_index][index]" 
+                    )
+                    v-divider.mx-1(vertical)
+            
 </template>
 
 <script>
@@ -67,6 +61,9 @@ export default {
         },
         images: {
             default: [],
+        },
+        titles: {
+            default: ['current', 'after', '']
         },
         height: {
             default: '100%',
