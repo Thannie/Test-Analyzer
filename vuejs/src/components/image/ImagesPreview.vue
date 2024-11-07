@@ -41,6 +41,7 @@ v-card.pa-2.w-100.d-flex(
             div.w-50 
                 p After
                 img(
+                    v-if="images[selected_image_index][1]"
                     style="height: auto; max-width: 100%"
                     v-fullscreen-img="{scaleOnHover: true}"
                     :src="images[selected_image_index][1]" 
@@ -60,6 +61,10 @@ export default {
     
     },
     props: {
+        modelValue: {
+            required: false,
+            default: null
+        },
         images: {
             default: [],
         },
@@ -79,7 +84,7 @@ export default {
     },
     data(){
         return {
-            selected_image_index: 0
+            local_model_value: 0
         }
     },
     computed: {
@@ -88,6 +93,15 @@ export default {
                 return this.images.map(e => e[0])
             }
             return this.images
+        },
+        selected_image_index: {
+            get(){return this.modelValue || this.local_model_value},
+            set(val){
+                if (this.modelValue){
+                    this.modelValue = val
+                } 
+                this.local_model_value = val
+            }
         }
     },
     methods: {

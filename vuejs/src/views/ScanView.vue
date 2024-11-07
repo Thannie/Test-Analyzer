@@ -35,7 +35,7 @@ div
                         v-btn(@click="addUploadedImages") Voeg toe
                     div(v-if="step == 'fix'")
                         ImagesPreview(
-                            :images="images.map((e, index) => [e.original, e.preprossed])"
+                            :images="images.map((e, index) => [e.original, e.color_corrected])"
                             height="500px"
                             :isBeforeAfter="true"
                         )
@@ -125,8 +125,10 @@ export default {
             this.images.push({
                 id: getRandomID(),
                 original: file,
+                is_loading: false,
+                cropped: null,
                 red_pen: null,
-                preprossed: HAL,
+                color_corrected: null,
                 sections: [],
                 questions: []
             })
