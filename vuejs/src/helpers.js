@@ -67,6 +67,23 @@ function getRandomID(){
     return uuidv4()
 }
 
+function downloadJSON(object, filename) {
+  const dataStr = JSON.stringify(object);
+  const dataUri = 'data:text/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+  const link = document.createElement('a');
+  link.setAttribute('href', dataUri);
+  link.setAttribute('download', filename + '.json');
+  link.click();
+}
+
+// Example usage:
+const myObject = {
+  name: 'Alice',
+  age: 30,
+  city: 'New York'
+};
+
 
 
 
@@ -79,5 +96,6 @@ export {
     standardDeviation,
     decCount,
     isNumeric,
-    getRandomID
+    getRandomID,
+    downloadJSON
 }
