@@ -1,6 +1,7 @@
 <template lang="pug">
 div
     p {{ selected_step_index, selected_step }}
+    v-switch(v-model="is_qr_scanner" label="QR scanner") 
     v-stepper(v-model='selected_step_index' alt-labels :mobile="!$vuetify.display.mdAndUp")
         template(v-slot:default='{ prev, next }')
             v-stepper-header()
@@ -112,6 +113,37 @@ div
                                             :src="item.page.colorCorrected" 
                                         )
                         v-btn(@click="applyColorCorrection") Apply Color Correction
+                    div(v-if="step == 'extract qr sections'")
+                        ImagesPreview(
+                            :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
+                            height="500px"
+                            @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
+                            v-model="selected_page_id"
+                        )
+                            template(v-slot:selected="{ item }")
+                                div.h-100.w-100.d-flex
+                                    div.pa-3(style="height: 100%; width: 50%")
+                                        h2 Before
+                                        img(
+                                            style=" max-width: 100%; max-height: 100%"
+                                            v-if="item.page.colorCorrected"
+                                            v-fullscreen-img="{scaleOnHover: true}"
+                                            :src="item.page.colorCorrected" 
+                                        )
+
+                                    v-divider(vertical)
+                                    div.pa-3(style="height: 100%; width: 50%; position: relative")
+                                        RequestLoader(v-if="item.page.is_loading")
+                                        h2 after
+
+                                        img(
+                                            style=" max-width: 100%; max-height: 100%"
+                                            v-if="item.page.squareImage"
+                                            v-fullscreen-img="{scaleOnHover: true}"
+                                            :src="item.page.squareImage"
+                                        )
+                        v-btn(@click="extractQrSections") extract qr sections
+
                     div(v-if="step == 'detect squares'")
                         //- p {{ }}
                         ImagesPreview(
@@ -156,34 +188,38 @@ div
                                 )
                                     template(v-slot:selected="{ item }")
                                         div.w-100.h-100.pa-3(style="overflow-y: scroll")
-                                            h2 full
-                                            img(
-                                                :src="item.section.full"
-                                                v-fullscreen-img="{scaleOnHover: true}"
-                                                max-height="200px"
-                                            )
-                                            v-divider
-                                            h2 section_finder
-                                            img(
-                                                :src="item.section.section_finder"
-                                                v-fullscreen-img="{scaleOnHover: true}"
-                                                max-height="200px"
-                                            )
-                                            v-divider
-                                            h2 question_selector
-                                            img(
-                                                :src="item.section.question_selector"
-                                                v-fullscreen-img="{scaleOnHover: true}"
-                                                max-height="200px"
-                                            )
-                                            v-divider
-                                            h2 answer
-                                            img(
-                                                :src="item.section.answer"
-                                                v-fullscreen-img="{scaleOnHover: true}"
-                                                max-height="200px"
-                                            )
-                                            v-divider
+                                            div(v-if="item.section.full")
+                                                h2 full
+                                                img(
+                                                    :src="item.section.full"
+                                                    v-fullscreen-img="{scaleOnHover: true}"
+                                                    max-height="200px"
+                                                )
+                                                v-divider
+                                            div(v-if="item.section.section_finder")
+                                                h2 section_finder
+                                                img(
+                                                    :src="item.section.section_finder"
+                                                    v-fullscreen-img="{scaleOnHover: true}"
+                                                    max-height="200px"
+                                                )
+                                                v-divider
+                                            div(v-if="item.section.question_selector")
+                                                h2 question_selector
+                                                img(
+                                                    :src="item.section.question_selector"
+                                                    v-fullscreen-img="{scaleOnHover: true}"
+                                                    max-height="200px"
+                                                )
+                                                v-divider
+                                            div(v-if="item.section.answer")
+                                                h2 answer
+                                                img(
+                                                    :src="item.section.answer"
+                                                    v-fullscreen-img="{scaleOnHover: true}"
+                                                    max-height="200px"
+                                                )
+                                                v-divider
                                             div(style="position: relative")
                                                 RequestLoader(v-if="item.section.is_loading")
 
@@ -260,6 +296,8 @@ import RequestLoader from '@/components/sub/RequestLoader.vue'
 import HAL from '@/assets/HAL.png'
 import lege_student_row from '@/assets/lege_student_row.png'
 import INPUT from '@/assets/input.png'
+import TESTFOTO from '@/assets/testfoto.jpg'
+import QRSECTION from '@/assets/qr_section_input.png'
 
 export default {
     name: 'ScanView',
@@ -273,22 +311,35 @@ export default {
     data() {
         return {
             selected_page_id:null,
-            stepper_steps: [
+            selected_step_index: 0,
+            uploaded_images: [],
+            pages: [], // Stores Page objects
+            is_qr_scanner: false,
+
+        }
+    },
+    computed: {
+        selected_step() { return this.stepper_steps[this.selected_step_index] },
+        stepper_steps(){
+            if(this.is_qr_scanner){
+                return [
+                    'load images',
+                    'crop images',
+                    'apply color correction',
+                    'extract qr sections',
+                    'extract sections',
+                    'link answers',
+                ]
+            }
+            return [
                 'load images',
                 'crop images',
                 'apply color correction',
                 'detect squares',
                 'extract sections',
                 'link answers',
-                
-            ],
-            selected_step_index: 0,
-            uploaded_images: [],
-            pages: [] // Stores Page objects
+            ]
         }
-    },
-    computed: {
-        selected_step() { return this.stepper_steps[this.selected_step_index] }
     },
     methods: {
         async convertImageToPNG(file) {
@@ -304,7 +355,7 @@ export default {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.crossOrigin = 'Anonymous'; // This is needed if the image is hosted externally
-                img.src = imageSrc;
+                img.src = imageSrc instanceof File ? URL.createObjectURL(imageSrc) : imageSrc
 
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
@@ -315,11 +366,16 @@ export default {
                     resolve(canvas.toDataURL('image/png')); // Get the Base64 string
                 };
 
-                img.onerror = (error) => reject(error);
+                img.onerror = (error) => {
+                    console.error("Error loading image:", error, "Source:", imageSrc);
+                    reject(new Error("Failed to load image at " + imageSrc));
+                };
             });
         },
+        
         async addUploadedImages() {
-            const pngImages = await Promise.all(this.uploaded_images.map(e => this.convertImageToPNG(e)))
+            
+            const pngImages = await Promise.all(this.uploaded_images.map(e => (this.convertImportedImageToBase64(e))))
             pngImages.forEach(image => this.addImage(image))
         },
 
@@ -335,7 +391,9 @@ export default {
         async applyColorCorrection() {
             await Promise.all(this.pages.map(page => page.colorCorrect()))
         },
-
+        async extractQrSections(){
+            await Promise.all(this.pages.map(async page => await page.detectQrSections()))
+        },
         async detectSquares() {
             await Promise.all(this.pages.map(async page => {
                 await page.detectSquares()
@@ -386,10 +444,19 @@ export default {
             this.selected_step_index--
         }
     },
+    watch:{
+        async is_qr_scanner(){
+            if (this.is_qr_scanner){
+                this.addImage(await this.convertImportedImageToBase64(QRSECTION))
+
+            }
+        }
+    },
     async mounted() {
         // Load initial images as pages
         // this.addImage(HAL)
-        this.addImage(await this.convertImportedImageToBase64(INPUT))
+        // console.log(await this.convertImportedImageToBase64(INPUT))
+        this.addImage(await this.convertImportedImageToBase64(TESTFOTO))
         console.log(this.pages)
     },
 }

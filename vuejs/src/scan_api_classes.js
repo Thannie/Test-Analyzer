@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getRandomID } from './helpers';
 
-const use_localhost = false
+const use_localhost = true
 // const endpoint = 'http://localhost:8080'
 var endpoint = (use_localhost&&(location.hostname === "localhost" || location.hostname === "127.0.0.1")) ? 'http://localhost:8080' : 'https://toetspws-function-771520566941.europe-west4.run.app'
 
@@ -49,6 +49,25 @@ class ScanPage {
         return this.colorCorrected;
     }
 
+    async detectQrSections(){
+        this.is_loading = true
+        const response = await axios.post(endpoint+'/get_qr_sections', {
+            Base64Image: this.colorCorrected,
+        });
+        this.squareImage = response.data.output.image
+        response.data.output.sections.forEach(e => {
+            const section = new ScanSection({
+                full: e.section_image,
+                answer: e.section_image,
+                question_number: e.data,
+                is_qr_section: true
+            })
+            this.sections.push(section)
+        });
+        this.is_loading = false
+        return this.colorCorrected;
+    }
+
     // Detect squares on the image
     async detectSquares() {
         this.is_loading = true
@@ -65,10 +84,15 @@ class ScanPage {
     async createSections() {
         this.is_loading = true
         const response = await axios.post(endpoint+'/extract_sections', {
-            Base64Image: this.base64Image,
+            Base64Image: this.croppedImage,
             square_data: this.squareData
         });
-        this.sections = response.data.output.sections.map(section => new ScanSection(section.full, section.section_finder, section.question_selector, section.answer));
+        this.sections = response.data.output.sections.map(section => new ScanSection({
+            full: section.full, 
+            section_finder: section.section_finder, 
+            question_selector: section.question_selector, 
+            answer: section.answer
+        }));
         this.is_loading = false
     }
 
@@ -103,21 +127,25 @@ class ScanPage {
 
 
 class ScanSection {
-    constructor(
-        full,
-        section_finder,
-        question_selector,
-        answer,
-    ) {
+    constructor({
+        full=null,
+        section_finder=null,
+        question_selector=null,
+        answer=null,
+        question_number=null,
+        question_number_data=null,
+        is_qr_section=false
+    }) {
         this.id = getRandomID()
         this.is_loading = false
         this.full = full
         this.section_finder = section_finder
         this.question_selector = question_selector
         this.answer = answer
+        this.is_qr_section = is_qr_section
 
-        this.question_number = null
-        this.question_number_data = null
+        this.question_number = question_number
+        this.question_number_data = question_number_data
     }
 
     async extractQuestion(){
