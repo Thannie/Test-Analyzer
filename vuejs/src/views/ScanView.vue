@@ -113,7 +113,7 @@ div
                                             :src="item.page.colorCorrected" 
                                         )
                         v-btn(@click="applyColorCorrection") Apply Color Correction
-                    div(v-if="step == 'extract qr sections'")
+                    div(v-if="step == 'extract qr sections and student id'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
                             height="500px"
@@ -121,7 +121,10 @@ div
                             v-model="selected_page_id"
                         )
                             template(v-slot:selected="{ item }")
-                                div.h-100.w-100.d-flex
+                                h2 Student id
+                                p {{ item.page.student_id  }}
+                                v-divider
+                                div.w-100.d-flex(style="height: calc(100% - 40px)")
                                     div.pa-3(style="height: 100%; width: 50%")
                                         h2 Before
                                         img(
@@ -142,7 +145,9 @@ div
                                             v-fullscreen-img="{scaleOnHover: true}"
                                             :src="item.page.squareImage"
                                         )
+
                         v-btn(@click="extractQrSections") extract qr sections
+                        v-btn(@click="extractStudentId") extract student id
 
                     div(v-if="step == 'detect squares'")
                         //- p {{ }}
@@ -153,7 +158,10 @@ div
                             v-model="selected_page_id"
                         )
                             template(v-slot:selected="{ item }")
-                                div.h-100.w-100.d-flex
+                                h2 Student id
+                                p {{ item.page.student_id  }}
+                                v-divider
+                                div.w-100.d-flex(style="height: calc(100% - 40px)")
                                     div.pa-3(style="height: 100%; width: 50%")
                                         h2 Before
                                         img(
@@ -175,6 +183,8 @@ div
                                             :src="item.page.squareImage"
                                         )
                         v-btn(@click="detectSquares") Detect Squares
+                        v-btn(@click="extractStudentId") extract student id
+
                     div(v-if="step == 'extract sections'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
@@ -194,22 +204,26 @@ div
                                                     :src="item.section.full"
                                                     v-fullscreen-img="{scaleOnHover: true}"
                                                     max-height="200px"
+                                                    max-width="300px"
                                                 )
                                                 v-divider
                                             div(v-if="item.section.section_finder")
-                                                h2 section_finder
+                                                h2 section_finder and studet id
                                                 img(
                                                     :src="item.section.section_finder"
                                                     v-fullscreen-img="{scaleOnHover: true}"
                                                     max-height="200px"
+                                                    max-width="300px"
                                                 )
                                                 v-divider
+
                                             div(v-if="item.section.question_selector")
                                                 h2 question_selector
                                                 img(
                                                     :src="item.section.question_selector"
                                                     v-fullscreen-img="{scaleOnHover: true}"
                                                     max-height="200px"
+                                                    max-width="300px"
                                                 )
                                                 v-divider
                                             div(v-if="item.section.answer")
@@ -218,6 +232,7 @@ div
                                                     :src="item.section.answer"
                                                     v-fullscreen-img="{scaleOnHover: true}"
                                                     max-height="200px"
+                                                    max-width="300px"
                                                 )
                                                 v-divider
                                             div(style="position: relative")
@@ -326,7 +341,7 @@ export default {
                     'load images',
                     'crop images',
                     'apply color correction',
-                    'extract qr sections',
+                    'extract qr sections and student id',
                     'extract sections',
                     'link answers',
                 ]
@@ -394,6 +409,9 @@ export default {
         async extractQrSections(){
             await Promise.all(this.pages.map(async page => await page.detectQrSections()))
         },
+        async extractStudentId(){
+            await Promise.all(this.pages.map(async page => await page.detectStudentId()))
+        },
         async detectSquares() {
             await Promise.all(this.pages.map(async page => {
                 await page.detectSquares()
@@ -419,8 +437,7 @@ export default {
             await Promise.all(this.pages.map(async page => {
                 await page.cropImage()
                 await page.colorCorrect()
-                await page.detectSquares()
-                await page.createSections()
+                await Promise.all([page.detectStudentId(), page.detectSquares()])
                 await page.createSections()
                 await page.extractQuestions()
                 await page.linkAnswers()

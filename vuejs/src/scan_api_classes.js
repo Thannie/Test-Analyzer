@@ -11,6 +11,7 @@ class ScanPage {
     this.base64Image = base64Image;
     this.id = getRandomID()
     this.is_loading = false
+    this.student_id = null;
     this.colorCorrected = null;
     this.redPenExtracted = null;
     this.squareImage = null;
@@ -52,7 +53,7 @@ class ScanPage {
     async detectQrSections(){
         this.is_loading = true
         const response = await axios.post(endpoint+'/get_qr_sections', {
-            Base64Image: this.colorCorrected,
+            Base64Image: this.croppedImage,
         });
         this.squareImage = response.data.output.image
         response.data.output.sections.forEach(e => {
@@ -67,7 +68,15 @@ class ScanPage {
         this.is_loading = false
         return this.colorCorrected;
     }
-
+    async detectStudentId(){
+        this.is_loading = true
+        const response = await axios.post(endpoint+'/get_student_id', {
+            Base64Image: this.croppedImage,
+        });
+        this.student_id = response.data.output
+        
+        this.is_loading = false
+    }
     // Detect squares on the image
     async detectSquares() {
         this.is_loading = true
@@ -105,7 +114,7 @@ class ScanPage {
     // Link with other answer sections
     async linkAnswers() {
         this.is_loading = true
-        const unique_questions = [...new Set(this.sections.map(e => e.question_number))].filter(e => e >= 0)
+        const unique_questions = [...new Set(this.sections.map(e => e.question_number))].filter(e => e != 0)
         const response = await Promise.all(unique_questions.map(async question_number => {
             const response = await axios.post(endpoint+'/link_answer_sections', {
                 sections: this.sections.filter(e => e.question_number == question_number).map(section => section.answer),
