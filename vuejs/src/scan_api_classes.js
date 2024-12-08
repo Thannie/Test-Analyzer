@@ -18,6 +18,8 @@ class ScanPage {
     this.squareData = [];
     this.sections = [];
     this.questions = [];
+    this.is_loading_all = false;
+    this.total_result = {}
   }
     generateRandomId() {
         return Math.random().toString(36).substring(2, 15);
@@ -29,6 +31,7 @@ class ScanPage {
             const response = await axios.post(endpoint+'/crop', {
                 Base64Image: this.base64Image
             });
+            console.log(result)
             if (response.data && response.data.output) {
                 this.croppedImage = response.data.output;
             } else {
@@ -45,6 +48,7 @@ class ScanPage {
         const response = await axios.post(endpoint+'/extract_red_pen', {
             Base64Image: this.croppedImage,
         });
+        console.log(response)
         this.colorCorrected = response.data.output.clean;
         this.is_loading = false
         return this.colorCorrected;
@@ -55,16 +59,19 @@ class ScanPage {
         const response = await axios.post(endpoint+'/get_qr_sections', {
             Base64Image: this.croppedImage,
         });
-        this.squareImage = response.data.output.image
-        response.data.output.sections.forEach(e => {
+        this.squareImage = response.data.output?.image || null
+        response.data?.output?.sections?.forEach(e => {
             const section = new ScanSection({
                 full: e.section_image,
                 answer: e.section_image,
                 question_number: e.data,
                 is_qr_section: true
             })
+
             this.sections.push(section)
         });
+        console.log(response)
+
         this.is_loading = false
         return this.colorCorrected;
     }
@@ -73,7 +80,7 @@ class ScanPage {
         const response = await axios.post(endpoint+'/get_student_id', {
             Base64Image: this.croppedImage,
         });
-        this.student_id = response.data.output
+        this.student_id = response.data.output.result
         
         this.is_loading = false
     }
@@ -88,7 +95,18 @@ class ScanPage {
         this.is_loading = false
         return this.squareData;
     }
-
+    // calculate everything
+    async scanPage() {
+        this.is_loading_all = true
+        console.log('started scan page: ', this)
+        const response = await axios.post(endpoint+'/scan_page', {
+            Base64Image: this.base64Image,
+        });
+        console.log(response)
+        this.total_result = response.data.output;
+        this.is_loading_all = false
+        return this.total_result;
+    }
     // Create sections based on square data
     async createSections() {
         this.is_loading = true
@@ -162,8 +180,8 @@ class ScanSection {
         const response = await axios.post(endpoint+'/question_selector_info', {
             Base64Image: this.question_selector,
         });
-        this.question_number = response.data.output.selected_question;
-        this.question_number_data = response.data.output
+        this.question_number = response.data.output.result.most_certain_checked_number;
+        this.question_number_data = response.data.output.result
         this.is_loading = false
         return response
     }
@@ -187,7 +205,8 @@ class ScanQuestion {
         const response = await axios.post(endpoint+'/extract_text', {
             Base64Image: this.base64Image,
         });
-        this.text = response.data.output.raw_text;
+        console.log(response)
+        this.text = response.data.output.result.raw_text;
         this.data = response.data.output
         this.is_loading = false
         return { text: this.text };

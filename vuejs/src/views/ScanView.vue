@@ -18,6 +18,18 @@ div
                     ) 
                     v-divider(v-if='index !== stepper_steps.length-1')
 
+            v-btn(
+                @click="executeAll()"
+            ) Execute all sequential
+            v-btn(
+                @click="executeAllScanPage()"
+                :loading="all_loading_status=='started'"
+            ) Execute all total (efficienter)
+            v-btn(
+                :disabled="all_loading_status != 'loaded'"
+                @click="downloadJSON(pages.map(e => {return {page_id: e.id, result: e.total_result}}), 'all_page_data' )"
+                text="download all scanPage"
+            )
             v-stepper-window
                 v-stepper-window-item.pa-0(
                     v-for='(step, index) in stepper_steps' 
@@ -25,24 +37,39 @@ div
                     :value='index'
                 )
                     h2 {{ step, selected_page_id }}
-                    v-btn(
-                        @click="executeAll()"
-                    ) Execute all
+
                     div.w-100(v-if="step == 'load images'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
                             height="500px"
+                            style="overflow-y: scroll"
+
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
                             :hasDeleteButton="true"
                             v-model="selected_page_id"
                         )
                             template(v-slot:selected="{ item }")
-                                img(
-                                    v-if="item.image"
-                                    style="max-height: 100%"
-                                    v-fullscreen-img="{scaleOnHover: true}"
-                                    :src="item.image" 
-                                )
+                                v-row.w-100
+                                    v-col
+                                        img(
+                                            v-if="item.image"
+                                            style="max-height: 100%; max-width: 100%"
+                                            v-fullscreen-img="{scaleOnHover: true}"
+                                            :src="item.image" 
+                                        )
+                                    v-col.w-50
+                                        v-btn(
+                                            :loading="item.page.is_loading_all"
+                                            text="Extraheer alles" @click="item.page.scanPage()"
+                                        )
+                                        v-btn(
+                                            :disabled="item.page.is_loading_all"
+                                            text="Download"
+                                            @click="downloadJSON(item.total_result, 'PageData_'+page.id)"
+                                        )
+                                        //- pre {{ item.page.total_result }}
+
+                                
 
                         v-file-input(
                             label="Upload images"
@@ -55,6 +82,8 @@ div
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
                             height="500px"
+                            style="overflow-y: scroll"
+
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
                             v-model="selected_page_id"
                         )
@@ -87,6 +116,8 @@ div
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
                             height="500px"
+                            style="overflow-y: scroll"
+
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
                             v-model="selected_page_id"
                         )
@@ -117,6 +148,8 @@ div
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
                             height="500px"
+                            style="overflow-y: scroll"
+
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
                             v-model="selected_page_id"
                         )
@@ -154,6 +187,8 @@ div
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
                             height="500px"
+                            style="overflow-y: scroll"
+
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
                             v-model="selected_page_id"
                         )
@@ -189,6 +224,8 @@ div
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
                             height="500px"
+                            style="overflow-y: scroll"
+
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
                             v-model="selected_page_id"
                         )
@@ -197,14 +234,14 @@ div
                                     :items="item.page.sections.map(section => {return {section, id: section.id, image: section.full, title: section.id}})"
                                 )
                                     template(v-slot:selected="{ item }")
-                                        div.w-100.h-100.pa-3(style="overflow-y: scroll")
+                                        div.w-100.h-100.pa-3(                            style="overflow-y: scroll"
+)
                                             div(v-if="item.section.full")
                                                 h2 full
                                                 img(
                                                     :src="item.section.full"
                                                     v-fullscreen-img="{scaleOnHover: true}"
-                                                    max-height="200px"
-                                                    max-width="300px"
+                                                    style="max-height: 200px; max-width: 90%"
                                                 )
                                                 v-divider
                                             div(v-if="item.section.section_finder")
@@ -212,8 +249,8 @@ div
                                                 img(
                                                     :src="item.section.section_finder"
                                                     v-fullscreen-img="{scaleOnHover: true}"
-                                                    max-height="200px"
-                                                    max-width="300px"
+                                                    style="max-height: 200px; max-width: 90%"
+
                                                 )
                                                 v-divider
 
@@ -222,8 +259,7 @@ div
                                                 img(
                                                     :src="item.section.question_selector"
                                                     v-fullscreen-img="{scaleOnHover: true}"
-                                                    max-height="200px"
-                                                    max-width="300px"
+                                                    style="max-height: 200px; max-width: 90%"
                                                 )
                                                 v-divider
                                             div(v-if="item.section.answer")
@@ -231,8 +267,8 @@ div
                                                 img(
                                                     :src="item.section.answer"
                                                     v-fullscreen-img="{scaleOnHover: true}"
-                                                    max-height="200px"
-                                                    max-width="300px"
+                                                    style="max-height: 200px; max-width: 90%"
+
                                                 )
                                                 v-divider
                                             div(style="position: relative")
@@ -247,12 +283,16 @@ div
                         //- ImagesPreview(
                         //-     :images="pages.map(page => page.sections.map(section => section.base64Image))"
                         //-     height="500px"
+                            style="overflow-y: scroll"
+
                         //- )
                         v-btn(@click="extractQuestions") Extract question numbers
                     div(v-if="step == 'link answers'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
                             height="500px"
+                            style="overflow-y: scroll"
+
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
                             v-model="selected_page_id"
                         )
@@ -261,7 +301,8 @@ div
                                     :items="item.page.questions.map(question => {return {question, id: question.id, image: question.full, title: question.id}})"
                                 )
                                     template(v-slot:selected="{ item }")
-                                        div.w-100.h-100.pa-3(style="overflow-y: scroll")
+                                        div.w-100.h-100.pa-3(                            style="overflow-y: scroll"
+)
                                             h2 question_number
                                             p {{ item.question.question_number}}
 
@@ -311,7 +352,7 @@ import RequestLoader from '@/components/sub/RequestLoader.vue'
 import HAL from '@/assets/HAL.png'
 import lege_student_row from '@/assets/lege_student_row.png'
 import INPUT from '@/assets/input.png'
-import TESTFOTO from '@/assets/testfoto.jpg'
+import TESTFOTO from '@/assets/crop_input.png'
 import QRSECTION from '@/assets/qr_section_input.png'
 
 export default {
@@ -330,6 +371,7 @@ export default {
             uploaded_images: [],
             pages: [], // Stores Page objects
             is_qr_scanner: false,
+            all_loading_status: 'idle',
 
         }
     },
@@ -432,6 +474,11 @@ export default {
         },
         async extractText() {
             await Promise.all(this.pages.map(page => page.extractText()))
+        },
+        async executeAllScanPage() {
+            this.all_loading_status = 'started'
+            await Promise.all(this.pages.map(page => page.scanPage()))
+            this.all_loading_status = 'loaded'
         },
         async executeAll(){
             await Promise.all(this.pages.map(async page => {
