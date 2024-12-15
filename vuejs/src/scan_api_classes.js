@@ -5,9 +5,30 @@ const use_localhost = true
 // const endpoint = 'http://localhost:8080'
 var endpoint = (use_localhost&&(location.hostname === "localhost" || location.hostname === "127.0.0.1")) ? 'http://localhost:8080' : 'https://toetspws-function-771520566941.europe-west4.run.app'
 
+class ContextData {
+    constructor({
+        contexts= {},
+        questions= {},
+        rubrics= {},
+    }){
+        this.contexts = contexts
+        this.questions = questions
+        this.rubrics = rubrics
+    }
+    getQuestion(id){
+        return this.questions[id] || ""
+    }
+    getRubric(id){
+        return this.rubrics[id] || ""
+    }
+    getContext(id){
+        return this.contexts[id] || ""
+    }
+}
+
 
 class ScanPage {
-  constructor(base64Image) {
+  constructor(base64Image, context_data=new ContextData({})) {
     this.base64Image = base64Image;
     this.id = getRandomID()
     this.is_loading = false
@@ -20,6 +41,7 @@ class ScanPage {
     this.questions = [];
     this.is_loading_all = false;
     this.total_result = {}
+    this.context_data = context_data
   }
     generateRandomId() {
         return Math.random().toString(36).substring(2, 15);
@@ -31,7 +53,6 @@ class ScanPage {
             const response = await axios.post(endpoint+'/crop', {
                 Base64Image: this.base64Image
             });
-            console.log(result)
             if (response.data && response.data.output) {
                 this.croppedImage = response.data.output;
             } else {
@@ -133,13 +154,15 @@ class ScanPage {
     async linkAnswers() {
         this.is_loading = true
         const unique_questions = [...new Set(this.sections.map(e => e.question_number))].filter(e => e != 0)
+        console.log(unique_questions)
         const response = await Promise.all(unique_questions.map(async question_number => {
             const response = await axios.post(endpoint+'/link_answer_sections', {
                 sections: this.sections.filter(e => e.question_number == question_number).map(section => section.answer),
             })
+            console.log(response)
             return {response, question_number}
         }))
-        this.questions = response.map(e => new ScanQuestion(e.response.data.output, e.question_number))
+        this.questions = response.map(e => new ScanQuestion(e.response.data.output, e.question_number, this))
 
         // this.linkedAnswersImage = response.data.output;
         this.is_loading = false
@@ -180,8 +203,9 @@ class ScanSection {
         const response = await axios.post(endpoint+'/question_selector_info', {
             Base64Image: this.question_selector,
         });
-        this.question_number = response.data.output.result.most_certain_checked_number;
-        this.question_number_data = response.data.output.result
+        console.log(response)
+        this.question_number = response.data.output.most_certain_checked_number;
+        this.question_number_data = response.data.output
         this.is_loading = false
         return response
     }
@@ -189,13 +213,14 @@ class ScanSection {
 
 }
 class ScanQuestion {
-    constructor(base64Image, question_number) {
+    constructor(base64Image, question_number, page) {
         this.id = getRandomID()
 
         this.base64Image = base64Image;
         this.question_number = question_number
         this.text = null;
         this.data = null
+        this.page = page
     }
 
 
@@ -204,6 +229,10 @@ class ScanQuestion {
         this.is_loading = false
         const response = await axios.post(endpoint+'/extract_text', {
             Base64Image: this.base64Image,
+            questionText: this.page.context_data.getQuestion(this.question_number.toString()),
+            rubricText: this.page.context_data.getQuestion(this.question_number.toString()),
+            contextText: this.page.context_data.getContext(this.question_number.toString()),
+
         });
         console.log(response)
         this.text = response.data.output.result.raw_text;
@@ -217,5 +246,6 @@ class ScanQuestion {
 export {
     ScanPage,
     ScanSection,
-    ScanQuestion
+    ScanQuestion,
+    ContextData
 }

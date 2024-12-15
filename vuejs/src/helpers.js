@@ -2,6 +2,8 @@ import {read, utils} from 'xlsx'
 import _ from 'lodash'
 import CircularJSON from 'circular-json'
 import {v4 as uuidv4} from 'uuid'
+// import sharp from 'sharp';
+
  /**
  * Loads the data and does a quick analysis
  *
@@ -77,14 +79,6 @@ function downloadJSON(object, filename) {
   link.click();
 }
 
-// Example usage:
-const myObject = {
-  name: 'Alice',
-  age: 30,
-  city: 'New York'
-};
-
-
 
 
 export {
@@ -97,5 +91,5 @@ export {
     decCount,
     isNumeric,
     getRandomID,
-    downloadJSON
+    downloadJSON,
 }

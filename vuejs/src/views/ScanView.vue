@@ -1,9 +1,7 @@
 <template lang="pug">
 div
-    p {{ selected_step_index, selected_step }}
-    v-switch(v-model="is_qr_scanner" label="QR scanner") 
-    v-stepper(v-model='selected_step_index' alt-labels :mobile="!$vuetify.display.mdAndUp")
-        template(v-slot:default='{ prev, next }')
+    v-stepper(v-model='selected_step_index' alt-labels :mobile="!$vuetify.display.mdAndUp" style="height: 100vh")
+        template.h-100(v-slot:default='{ prev, next }')
             v-stepper-header()
                 template(
                     v-for='(step, index) in stepper_steps' 
@@ -11,39 +9,37 @@ div
 
                 )
                     v-stepper-item(
-                        :complete='selected_step_index > index' 
+                        :editable='true || index < selected_step_index'
                         :value="index"
-                        :editable='index < selected_step_index'
                         :title="step"
                     ) 
                     v-divider(v-if='index !== stepper_steps.length-1')
+            div.d-flex
+                v-switch(v-model="is_qr_scanner" label="QR scanner") 
 
-            v-btn(
-                @click="executeAll()"
-            ) Execute all sequential
-            v-btn(
-                @click="executeAllScanPage()"
-                :loading="all_loading_status=='started'"
-            ) Execute all total (efficienter)
-            v-btn(
-                :disabled="all_loading_status != 'loaded'"
-                @click="downloadJSON(pages.map(e => {return {page_id: e.id, result: e.total_result}}), 'all_page_data' )"
-                text="download all scanPage"
-            )
-            v-stepper-window
-                v-stepper-window-item.pa-0(
+                v-btn(
+                    @click="executeAll()"
+                ) Execute all sequential
+                v-btn(
+                    @click="executeAllScanPage()"
+                    :loading="all_loading_status=='started'"
+                ) Execute all total (efficienter)
+                v-btn(
+                    :disabled="all_loading_status != 'loaded'"
+                    @click="downloadJSON(pages.map(e => {return {page_id: e.id, result: e.total_result}}), 'all_page_data' )"
+                    text="download all scanPage"
+                )
+            v-stepper-window.pa-0.ma-1(style="height: calc(100% - 190px); position: relative")
+                v-stepper-window-item.pa-0.h-100(
                     v-for='(step, index) in stepper_steps' 
                     :key='`${index}-content`' 
                     :value='index'
                 )
                     h2 {{ step, selected_page_id }}
 
-                    div.w-100(v-if="step == 'load images'")
+                    div.h-100(v-if="step == 'load images'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
-                            height="500px"
-                            style="overflow-y: scroll"
-
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
                             :hasDeleteButton="true"
                             v-model="selected_page_id"
@@ -67,21 +63,43 @@ div
                                             text="Download"
                                             @click="downloadJSON(item.total_result, 'PageData_'+page.id)"
                                         )
-                                        //- pre {{ item.page.total_result }}
 
-                                
+                                        v-textarea(
+                                            :rows="2"
+                                            :auto-grow="false"
+                                            v-model="question_string" title="question"
+                                        )
+                                        div.d-flex
+                                            v-btn(text="load question JSON" @click="context_data.questions = JSON.parse(question_string)")
+                                            p {{ Object.keys(context_data.questions) }}
+                                        v-textarea(
+                                            :rows="2"
+                                            :auto-grow="false"
+                                            v-model="rubric_string" title="rubric"
+                                        )
+                                        div.d-flex
+                                            v-btn(text="load rubric JSON" @click="context_data.rubrics = JSON.parse(rubric_string)")
+                                            p {{ Object.keys(context_data.rubrics) }}
+                                        v-textarea(
+                                            :rows="2"
+                                            :auto-grow="false"
+                                            v-model="context_string" title="context"
+                                        )
+                                        div.d-flex
+                                            v-btn(text="load context JSON" @click="context_data.contexts = JSON.parse(context_string)")
+                                            p {{ Object.keys(context_data.contexts) }}
 
                         v-file-input(
                             label="Upload images"
                             v-model="uploaded_images"
                             multiple
-                            accept="image/*"
+                            accept="image/*, .pdf"
                         )
                         v-btn(@click="addUploadedImages") Add Images
-                    div(v-if="step == 'crop images'")
+                    div.h-100(v-if="step == 'crop images'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
-                            height="500px"
+                            height="100%"
                             style="overflow-y: scroll"
 
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
@@ -112,10 +130,10 @@ div
                                             :src="item.page.croppedImage"
                                         )
                         v-btn(@click="cropImages") Crop Images
-                    div(v-if="step == 'apply color correction'")
+                    div.h-100(v-if="step == 'apply color correction'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
-                            height="500px"
+                            height="100%"
                             style="overflow-y: scroll"
 
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
@@ -144,10 +162,10 @@ div
                                             :src="item.page.colorCorrected" 
                                         )
                         v-btn(@click="applyColorCorrection") Apply Color Correction
-                    div(v-if="step == 'extract qr sections and student id'")
+                    div.h-100(v-if="step == 'extract qr sections and student id'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
-                            height="500px"
+                            height="100%"
                             style="overflow-y: scroll"
 
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
@@ -182,11 +200,11 @@ div
                         v-btn(@click="extractQrSections") extract qr sections
                         v-btn(@click="extractStudentId") extract student id
 
-                    div(v-if="step == 'detect squares'")
+                    div.h-100(v-if="step == 'detect squares'")
                         //- p {{ }}
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
-                            height="500px"
+                            height="100%"
                             style="overflow-y: scroll"
 
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
@@ -220,10 +238,10 @@ div
                         v-btn(@click="detectSquares") Detect Squares
                         v-btn(@click="extractStudentId") extract student id
 
-                    div(v-if="step == 'extract sections'")
+                    div.h-100(v-if="step == 'extract sections'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
-                            height="500px"
+                            height="100%"
                             style="overflow-y: scroll"
 
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
@@ -234,8 +252,7 @@ div
                                     :items="item.page.sections.map(section => {return {section, id: section.id, image: section.full, title: section.id}})"
                                 )
                                     template(v-slot:selected="{ item }")
-                                        div.w-100.h-100.pa-3(                            style="overflow-y: scroll"
-)
+                                        div.w-100.h-100.pa-3(style="overflow-y: scroll")
                                             div(v-if="item.section.full")
                                                 h2 full
                                                 img(
@@ -282,27 +299,27 @@ div
                                                 
                         //- ImagesPreview(
                         //-     :images="pages.map(page => page.sections.map(section => section.base64Image))"
-                        //-     height="500px"
+                        //-     height="100%"
                             style="overflow-y: scroll"
 
                         //- )
                         v-btn(@click="extractQuestions") Extract question numbers
-                    div(v-if="step == 'link answers'")
+                    div.h-100(v-if="step == 'link answers'")
                         ImagesPreview(
                             :items="pages.map(page => {return {page, id:page.id, image: page.base64Image, title:page.id}})"
-                            height="500px"
+                            height="100%"
                             style="overflow-y: scroll"
 
                             @delete="pages.splice(pages.findIndex(e => e.id == $event), 1)"
                             v-model="selected_page_id"
                         )
                             template(v-slot:selected="{ item }")
+
                                 ImagesPreview(
                                     :items="item.page.questions.map(question => {return {question, id: question.id, image: question.full, title: question.id}})"
                                 )
                                     template(v-slot:selected="{ item }")
-                                        div.w-100.h-100.pa-3(                            style="overflow-y: scroll"
-)
+                                        div.w-100.h-100.pa-3(style="overflow-y: scroll")
                                             h2 question_number
                                             p {{ item.question.question_number}}
 
@@ -327,22 +344,22 @@ div
                                                 h2 data
                                                 pre {{ item.question.data }}
                                                 
-                                            
                         v-btn(@click="linkAnswers") link answers
                         v-btn(@click="extractText") extract text
                         v-btn(@click="downloadJSON(this.pages.map(page => {return {id: page.id, questions: page.questions.map(question => {return {data:question.data}})}}), 'page_data')") download 
                         v-btn(@click="downloadJSON(this.pages.map(page => {return {id: page.id, questions: page.questions.map(question => {return {data:question.data, image: question.base64Image}})}}), 'page_data_with_image')") download with image
-                v-stepper-actions(
-                    :disabled='false' 
-                    @click:next='next' 
-                    @click:prev='prev'
-                )
+            div.d-flex.w-100(style="position: absolute; bottom: 0px")
+                v-btn(@click="prev") prev
+                v-btn.ml-auto(@click="next") next
+
 </template>
 
 <script>
 // Data 
-import { getRandomID, downloadJSON } from '@/helpers'
-import { ScanPage } from '@/scan_api_classes.js' // Adjust the path as needed
+import { getRandomID, downloadJSON, pdfToPng } from '@/helpers'
+import { ScanPage, ContextData } from '@/scan_api_classes.js' // Adjust the path as needed
+
+
 
 // Components
 import ImagesPreview from '@/components/image/ImagesPreview.vue'
@@ -372,6 +389,12 @@ export default {
             pages: [], // Stores Page objects
             is_qr_scanner: false,
             all_loading_status: 'idle',
+
+            context_data: new ContextData({}),
+
+            question_string: "",
+            rubric_string: "",
+            context_string: "",
 
         }
     },
@@ -432,12 +455,20 @@ export default {
         
         async addUploadedImages() {
             
-            const pngImages = await Promise.all(this.uploaded_images.map(e => (this.convertImportedImageToBase64(e))))
+            
+            const pngImages = await Promise.all(
+                this.uploaded_images.map(e => {
+                    if (e.type == "application/pdf") {
+                        return pdfToPng(e)
+                    }
+                    return [this.convertImportedImageToBase64(e)]
+                })
+            )
             pngImages.forEach(image => this.addImage(image))
         },
 
         addImage(base64Image) {
-            const page = new ScanPage(base64Image)
+            const page = new ScanPage(base64Image, this.context_data)
             this.pages.push(page)
         },
 
