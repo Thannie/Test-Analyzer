@@ -93,7 +93,7 @@ div
                             label="Upload images"
                             v-model="uploaded_images"
                             multiple
-                            accept="image/*, .pdf"
+                            accept="image/*"
                         )
                         v-btn(@click="addUploadedImages") Add Images
                     div.h-100(v-if="step == 'crop images'")
@@ -356,7 +356,7 @@ div
 
 <script>
 // Data 
-import { getRandomID, downloadJSON, pdfToPng } from '@/helpers'
+import { getRandomID, downloadJSON } from '@/helpers'
 import { ScanPage, ContextData } from '@/scan_api_classes.js' // Adjust the path as needed
 
 
@@ -461,7 +461,7 @@ export default {
                     if (e.type == "application/pdf") {
                         return pdfToPng(e)
                     }
-                    return [this.convertImportedImageToBase64(e)]
+                    return this.convertImportedImageToBase64(e)
                 })
             )
             pngImages.forEach(image => this.addImage(image))
