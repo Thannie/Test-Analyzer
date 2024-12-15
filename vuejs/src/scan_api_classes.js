@@ -235,7 +235,7 @@ class ScanQuestion {
 
         });
         console.log(response)
-        this.text = response.data.output.result.raw_text;
+        this.text = response.data.output.result.correctly_spelled_text;
         this.data = response.data.output
         this.is_loading = false
         return { text: this.text };

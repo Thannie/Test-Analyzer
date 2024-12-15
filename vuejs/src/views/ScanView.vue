@@ -61,7 +61,7 @@ div
                                         v-btn(
                                             :disabled="item.page.is_loading_all"
                                             text="Download"
-                                            @click="downloadJSON(item.total_result, 'PageData_'+page.id)"
+                                            @click="downloadJSON(item.page.total_result, 'PageData_'+item.page.id)"
                                         )
 
                                         v-textarea(
