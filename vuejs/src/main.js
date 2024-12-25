@@ -12,7 +12,8 @@ const pinia = createPinia()
 import VueApexCharts from "vue3-apexcharts";
 import { vFullscreenImgInstall } from 'maz-ui'
 import router from './router'
-
+import pdfUtilsPlugin from './pdf_utils';
+import PDFObjectPlugin from 'pdfobject-vue';
 
 // Components
 import App from './App.vue'
@@ -29,5 +30,13 @@ app
     .use(router)
     .use(vFullscreenImgInstall)
     .use(vuePugPlugin)
+    .use(pdfUtilsPlugin)
+    .use(PDFObjectPlugin)
+
+const globals = app.config.globalProperties
 
 app.mount('#app')
+
+export {
+    globals
+}

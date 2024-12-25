@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import AnalisisView from '@/views/AnalisisView'
 import ScanView from '@/views/ScanView'
-
+import FullView from '../views/FullView.vue'
 const routes = [
     {
         path: '/scan',
@@ -16,9 +16,14 @@ const routes = [
         component: AnalisisView
     },
     {
+        path: '/',
+        name: 'full',
+        component: FullView
+    },
+    {
         path: '/:pathMatch(.*)*',
         name: 'not-found',
-        redirect: '/scan'
+        redirect: '/'
     }
 ]
 const scrollBehavior = (to, from, savedPosition) => {
