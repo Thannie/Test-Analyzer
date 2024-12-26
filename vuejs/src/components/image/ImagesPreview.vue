@@ -10,12 +10,16 @@ v-card.pa-2.w-100.d-flex(
                 v-for="(item, index) in items"
                 @click="selected_image_id=item.id"
                 :class="{'selected-list-image': item.id==selected_image_id}"
+                style="position: relative"
 
                 
             )
+                RequestLoader(
+                    v-if="item.is_loading"
+                )
                 v-img(
                     :src="item.image"
-                    style="max-height: calc(120px - 24px)"
+                    style="min-width: 120px; min-height: 120px"
                 )
                 p.text-center {{ item.title }}
                 v-divider(:vertical="!this.$vuetify.display.mdAndUp" color="white")
@@ -64,12 +68,12 @@ v-card.pa-2.w-100.d-flex(
 
 
 // Components
-
+import RequestLoader from '@/components/sub/RequestLoader'
 
 export default {
     name: 'ImagesPreview',
     components: {
-    
+        RequestLoader
     },
     props: {
         modelValue: {

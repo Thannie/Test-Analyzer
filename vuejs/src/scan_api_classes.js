@@ -140,7 +140,22 @@ class ScanPage {
         });
         console.log(response)
         this.total_result = response.data.output;
+
+        this.student_id = this.total_result?.student_id_data?.result.text || ""
+        this.redPenExtracted = this.total_result?.red_pen_base64 || ""
+        this.croppedImage = this.total_result?.cropped_base64 || ""
+        this.total_result?.questions.forEach(q => {
+            const question =  new ScanQuestion(q.image)
+            question.base64Image = q.image
+            question.question_number = q.question_id.toString()
+            question.text = q.text_result?.result?.correctly_spelled_text || ""
+            question.student_handwriting_percent = q.text_result?.result?.student_handwriting_percent || ""
+            this.questions.push(question)
+        })
+
+
         this.is_loading_all = false
+
         return this.total_result;
     }
     // Create sections based on square data
@@ -297,19 +312,23 @@ class Test {
         this.test_data_result=test_data_result
     }
     async loadDataFromPdf(field_type){
-        this.files[field_type].data = await globals.$extractTextAndImages(this.files[field_type].raw)
-        console.log(this.files[field_type].data)
+        if (["rubric", "test"].includes(field_type)) {
+            this.files[field_type].data = await globals.$extractTextAndImages(this.files[field_type].raw)
+
+        } else if (["students"].includes(field_type)){
+            this.files[field_type].data = await globals.$pdfToBase64Images(this.files[field_type].raw)
+
+        }
     }
     async loadTestStructure(){
-        console.log(this)
         const request_text = `
         Je krijg een toets en de antwoorden. Jouw taak is om die zo goed en precies mogelijk in een digitaal formaat om te zetten.
         je hoeft niets te doen met de context om een vraag. Het gaat alleen om de vraag zelf
         Extraheer uit de teksten de vragen:
-        vraag tekst: de exacte tekst van de vraag
-        antwoord tekst: als er in het antwoordmodel een antwoord staat, neem die dan exact over. Laat anders leeg
-        question_id: dit is het nummer van de vraag, dit kan ook een samenstelling zijn van nummers en letters: 1a, 4c enz.
-        points: Haal uit de rubric bij elke vraag de rubric punten, als er geen punten in de rubric staan mag je zelf punten bedenken.
+            vraag tekst: de exacte tekst van de vraag
+            question_number: 
+                dit is het nummer van de vraag, oftewel vraagnummer, dit kan ook een samenstelling zijn van nummers en letters: 1a, 4c enz. Het is SUPER belangrijk dat dit bij ELKE vraag wordt gegeven.
+            points: Haal uit de rubric bij elke vraag de rubric punten, als er geen punten in de rubric staan moet je zelf punten bedenken.
         elk punt heeft:
             een naam (point_name) met in 1 of 2 woorden waar die punt overgaat
             een tekst (point_text) met daarin de exacte uitleg van dit punt
@@ -323,6 +342,8 @@ class Test {
 
 
         geeft de resultaten in de taal van de gegeven toets(vaak zal dat Nederlands zijn)
+
+        de question_number bij de vragen moet bij elke vraag aanwezig zijn
 
         Houd je altijd aan het gegeven schema
 
@@ -371,8 +392,7 @@ class Test {
         }))
     }
     addQuestion(question){
-        if (question.question_id){
-            question.rubric = question.points
+        if (question.question_number){
 
             this.questions.push(new Question({
                 test: this,
@@ -382,31 +402,61 @@ class Test {
             console.log('Could not find question id for: ', question)
         }
     }
+    createPages(){
+        this.files.students.data.forEach(image => {
+            this.addPage({
+                base64Image: image
+            })
+        })
+    }
+    addPage(data){
+        const context = new ContextData({
+            questions: this.questions.reduce((data, e) => {
+                data[e.question_number] = e.question_text
+                return data
+            }, {}),
+            rubrics: this.questions.reduce((data, e) => {
+                data[e.question_number] = e.points.map(e => e.point_text).join("\n")
+                return data
+            }, {}),
+        })
+
+        // TODO: fix the ScanPage
+        this.pages.push(new ScanPage(data.base64Image, context))
+    }
+    async scanPages(){
+        await Promise.all(this.pages.map((page, index) => this.pages[index].scanPage()))
+        console.log(this)
+
+
+    }
 }
+
 
 class Question {
     constructor({
         test=new Test({}),
         id=getRandomID(),
-        question_id="",
+        question_number="",
         question_text="",
         answer_text="",
-        rubric=[],
+        points=[],
     }){
         this.test = test
 
         this.id = id
-        this.question_id = question_id
+        this.question_number = question_number
         this.question_text = question_text
         this.answer_text = answer_text
+        this.points = []
 
-        rubric.forEach(e => this.addRubricPoint(e))
+        points.forEach(e => this.addRubricPoint(e))
     }
     addRubricPoint(point){
         const target = this.test.targets.find(e => e.target_name == point.target_name)
 
         
-        this.rubric.push(new RubricPoint({
+        this.points.push(new RubricPoint({
             question:this,
             ...point,
             target
@@ -422,6 +472,7 @@ class RubricPoint {
         point_name="",
         point_weight=1,
         target=new Target({}),
+        target_id=null
     }){
         this.question = question
 
@@ -429,7 +480,10 @@ class RubricPoint {
         this.point_text = point_text
         this.point_name = point_name
         this.point_weight =  point_weight
-        this.target = target
+        this.target_id = target_id || target.id
+    }
+    get target(){
+        return this.question.test.targets.find(e => e.id == this.target_id)
     }
 }
 

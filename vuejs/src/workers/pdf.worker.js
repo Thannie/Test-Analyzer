@@ -38,20 +38,26 @@ export async function pdfToBase64Images(pdfData) {
         if (op === pdfjsLib.OPS.paintImageXObject || op === pdfjsLib.OPS.paintImageMaskXObject) {
           const imageName = operatorList.argsArray[operatorList.fnArray.indexOf(op)][0];
           try {
-            await page.objs.resolve(imageName); // Wait for the image object to be resolved
-            const image = await page.objs.get(imageName);
+            const image = await new Promise((resolve) => {
+              page.objs.get(imageName, (data) => resolve(data))
+            });
 
             if (image) {
               const canvasImg = new OffscreenCanvas(image.width, image.height);
               const ctxImg = canvasImg.getContext('2d');
-              const imgData = await image.getImageData();
-              const imageData = ctxImg.createImageData(image.width, image.height);
-              imageData.data.set(imgData.data);
-              ctxImg.putImageData(imageData, 0, 0);
-              base64Images.push(canvasImg.convertToBlob({ type: 'image/png' }).then(blob => {
+              const imgData = await image.bitmap;
+
+              ctxImg.drawImage(imgData, 0, 0);
+              base64Images.push(canvasImg.convertToBlob({
+                type: 'image/png'
+              }).then(blob => {
                 return new Promise((resolve, reject) => {
                   const reader = new FileReader();
-                  reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                  reader.onloadend = () => {
+                    console.log('loaded Image: ', imageName)
+                    resolve(reader.result)
+
+                  };
                   reader.onerror = reject;
                   reader.readAsDataURL(blob);
                 });
@@ -65,6 +71,7 @@ export async function pdfToBase64Images(pdfData) {
         }
       }
     }
+
     return Promise.all(base64Images);
   } catch (error) {
     console.error("Error processing PDF:", error);
@@ -85,7 +92,10 @@ export async function extractTextAndImages(pdfData) {
       const textContent = await page.getTextContent();
       const textItems = textContent.items.map(item => item.str).join(' ');
       if (textItems.trim()) {
-        extractedData.push({ type: "text", data: textItems });
+        extractedData.push({
+          type: "text",
+          data: textItems
+        });
       }
 
       // Extract images
@@ -96,7 +106,7 @@ export async function extractTextAndImages(pdfData) {
           try {
             // await page.commonObjs.resolve(imageName); // Wait for the image object to be resolved
             const image = await new Promise((resolve) => {
-                page.objs.get(imageName, (data) => resolve(data))
+              page.objs.get(imageName, (data) => resolve(data))
             });
 
             if (image) {
@@ -105,13 +115,18 @@ export async function extractTextAndImages(pdfData) {
               const imgData = await image.bitmap;
               ctxImg.drawImage(imgData, 0, 0);
               const base64Image = await new Promise((resolve) => {
-                canvasImg.convertToBlob({ type: 'image/png' }).then(blob => {
+                canvasImg.convertToBlob({
+                  type: 'image/png'
+                }).then(blob => {
                   const reader = new FileReader();
                   reader.onloadend = () => resolve(reader.result);
                   reader.readAsDataURL(blob);
                 });
               });
-              extractedData.push({ type: "image", data: base64Image });
+              extractedData.push({
+                type: "image",
+                data: base64Image
+              });
             } else {
               console.warn(`Image with name "${imageName}" not found in page.objs.`);
             }
